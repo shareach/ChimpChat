@@ -20,7 +20,7 @@ import java.util.*;
 public class LearnerFoo implements Learner<Command, ViewState, AppModel> {
     private TeacherP<Command, ViewState, AppModel> teacher;
     private Map<CList<Command>, CList<ViewState>> iomap;
-    private Set<CList<Command>> candidateSet;
+    private TreeSet<CList<Command>> candidateSet;
 
     public LearnerFoo(TeacherP<Command, ViewState, AppModel> teacher) {
         this.teacher = teacher;
@@ -51,13 +51,13 @@ public class LearnerFoo implements Learner<Command, ViewState, AppModel> {
     }
 
     public CList<Command> getQuestion() {
-        CVector<Command> temp = new CVector<Command>();
-        temp.add(PushCommand.getMenu());
-        temp.add(PushCommand.getMenu());
-        return temp;
+        //CVector<Command> temp = new CVector<Command>();
+        //temp.add(PushCommand.getMenu());
+        //temp.add(PushCommand.getMenu());
+        //return temp;
 
-        //if (candidateSet.isEmpty()) return null;
-        //return candidateSet.iterator().next();
+        if (candidateSet.isEmpty()) return null;
+        return candidateSet.pollFirst();
     }
 
     public void learn(CList<Command> input, CList<ViewState> output) {
