@@ -20,7 +20,7 @@ class MonkeyControlOption{
         mainActivity = System.getenv("MAIN_ACTIVITY");//("com.android.demo.notepad3.Notepadv3")
     }
 
-    //to check whether all basic informations are there
+    //to check whether all basic information is there
     public boolean isComplete(){
         if(mainActivity == null) return false;
         if(applicationPackage == null) return false;

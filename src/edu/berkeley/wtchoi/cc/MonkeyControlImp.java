@@ -120,10 +120,12 @@ class MonkeyControlImp implements MonkeyControl {
             //throw new RuntimeException("Communication initiator interrupted");
             return false;
         }
+        System.out.println("Waiting for application to be stable");
 
         //3. Wait for application to be ready for command
         try {
             Packet packet = (Packet) this.ois.readObject();
+            System.out.println("Receving Packet:"+packet.toString());
             if (packet.getType() != Packet.Type.AckStable) {
                 //throw new RuntimeException("Application sent wrong packet. AckStable expected");
                 return false;
@@ -163,6 +165,7 @@ class MonkeyControlImp implements MonkeyControl {
 
     public MonkeyView getView() {
         MonkeyView mv;
+        Object obj;
 
         try {
             //0. Assume that application is waiting for command
@@ -171,13 +174,22 @@ class MonkeyControlImp implements MonkeyControl {
             oos.writeObject(packet);
 
             //2. Wait and get a View information from application
-            mv = (MonkeyView) ois.readObject();
+            obj = ois.readObject();
+            System.out.println("Receiving Packet:" + obj);
+//            if(obj instanceof Packet){
+//                System.out.println( ((Packet) obj).getType() );
+//            }
+            mv = (MonkeyView) obj;
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Cannot read an object");
             return null;
         } catch (java.lang.ClassNotFoundException e) {
             System.out.println("Cannot read an object");
+            return null;
+        } catch(ClassCastException e){
+            e.printStackTrace();
+            System.out.println("Wrong packet arrived");
             return null;
         }
         //DEBUG PRINT : whether received information is correct or not
@@ -210,6 +222,7 @@ class MonkeyControlImp implements MonkeyControl {
 
             //1.3 Wait for App Supervisor response
             Packet receivingPacket = (Packet) ois.readObject();
+            System.out.println("Receiving Packet:" + receivingPacket);
             if (receivingPacket.getType() != Packet.Type.AckStable) {
                 //throw new RuntimeException(Application Execution is not guided correctly);
                 return false;

@@ -51,8 +51,13 @@ public class LearnerFoo implements Learner<Command, ViewState, AppModel> {
     }
 
     public CList<Command> getQuestion() {
-        if (candidateSet.isEmpty()) return null;
-        return candidateSet.iterator().next();
+        CVector<Command> temp = new CVector<Command>();
+        temp.add(PushCommand.getMenu());
+        temp.add(PushCommand.getMenu());
+        return temp;
+
+        //if (candidateSet.isEmpty()) return null;
+        //return candidateSet.iterator().next();
     }
 
     public void learn(CList<Command> input, CList<ViewState> output) {

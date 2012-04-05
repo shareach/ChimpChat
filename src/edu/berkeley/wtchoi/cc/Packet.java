@@ -12,7 +12,19 @@ public class Packet implements Serializable{
         AckCommand, RequestView,
 
         // Packet from Application
-        AckStable
+        AckStable;
+
+        public String toString(){
+            switch(this){
+                case Ack: return "Ack";
+                case Reset: return "Reset";
+                case AckCommand: return "AckCommand";
+                case RequestView: return "RequestView";
+                case AckStable: return "AckStable";
+                default:
+                    return null;
+            }
+        }
     }
 
     private static int id_next = 0;

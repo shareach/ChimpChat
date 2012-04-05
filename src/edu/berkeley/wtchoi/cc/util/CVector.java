@@ -31,6 +31,14 @@ public class CVector<T extends Comparable<T>> extends Vector<T> implements CList
     public CVector(Collection<T> collection) {
         super(collection);
     }
+
+    public CVector(T[] array){
+        super();
+        for(T elt: array){
+            this.add(elt);
+        }
+    }
+
     
     public void writeTo(Writer writer) throws IOException{
         CollectionUtil.writeTo(this,"[","; ","]",writer);
