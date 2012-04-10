@@ -1,5 +1,6 @@
 package edu.berkeley.wtchoi.cc;
 
+import android.app.Application;
 import com.android.chimpchat.ChimpChat;
 import com.android.chimpchat.core.IChimpDevice;
 import edu.berkeley.wtchoi.cc.interfaces.Command;
@@ -48,7 +49,7 @@ class MonkeyControlImp implements MonkeyControl {
             java.net.Socket socket;
 
             try {
-                serverSocket = new java.net.ServerSocket(13339);
+                serverSocket = new java.net.ServerSocket(13338);
                 System.out.println("wait");
                 socket = serverSocket.accept();
                 System.out.println("go");
@@ -138,6 +139,13 @@ class MonkeyControlImp implements MonkeyControl {
         justRestarted = true;
 
         System.out.println("Application Initiated");
+
+        //4. Setup testing parameters
+        if(!setTestingOptions(option.getTestingOptions())){
+            return false;
+        }
+
+        System.out.println("Testing option sent");
         return true;
         //NOTE: At this moment, we expect application to erase all user data when ever it starts.
         //Therefore, our protocol doesn't have anythings about resetting application data.
@@ -231,5 +239,21 @@ class MonkeyControlImp implements MonkeyControl {
             return false;
         }
         return true;
+    }
+
+    public boolean setTestingOptions(TestingOptions o){
+        try{
+            Packet options = Packet.getSetOptions(o);
+            oos.writeObject(options);
+
+            Packet receivingPacket = (Packet) ois.readObject();
+            if(receivingPacket.getType() == Packet.Type.Ack){
+                return true;
+            }
+            return false;
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }

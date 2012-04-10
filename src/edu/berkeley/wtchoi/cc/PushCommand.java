@@ -28,6 +28,7 @@ public class PushCommand implements Command{
             case MENU:
                 //Code fragment for push MENU button
                 device.press(PhysicalButton.MENU, TouchPressType.DOWN_AND_UP);
+
         }
     }
 
