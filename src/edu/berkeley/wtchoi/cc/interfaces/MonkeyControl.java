@@ -1,6 +1,7 @@
 package edu.berkeley.wtchoi.cc.interfaces;
 
 import edu.berkeley.wtchoi.cc.MonkeyView;
+import edu.berkeley.wtchoi.cc.TestingOptions;
 
 import java.util.List;
 
@@ -27,4 +28,6 @@ public interface MonkeyControl {
     public MonkeyView getView();
 
     public void shutdown();
+
+    public boolean setTestingOptions(TestingOptions options);
 }
