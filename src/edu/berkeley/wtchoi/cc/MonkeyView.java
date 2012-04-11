@@ -20,14 +20,18 @@ public class MonkeyView implements Serializable, Comparable {
     private static final long serialVersionUID = -5186309675577891457L;
 
     //basic properties
-    private int x;
-    private int y;
+    private int x; //left
+    private int y; //top
     private int width;
     private int height;
+    private int scrollX = 0; //View.mScrollX;
+    private int scrollY = 0; //View.mScrollY;
+    private int absoluteX = 0; //Absolute position on Screen;
+    private int absoluteY = 0; //Absolute position on Screen;
     private LinkedList<MonkeyView> children;
 
     //additional properties
-    private boolean visible = true;
+    private boolean visible = false;
 
     @SuppressWarnings("unchecked")
     public MonkeyView(int ix, int iy, int iw, int ih, LinkedList<MonkeyView> ic) {
@@ -36,12 +40,23 @@ public class MonkeyView implements Serializable, Comparable {
         width = iw;
         height = ih;
 
+
         if (ic != null) children = (LinkedList<MonkeyView>) ic.clone();
         else children = null;
     }
 
     public void setVisible(boolean flag){
         visible = flag;
+    }
+
+    public void setScroll(int x, int y){
+        scrollX = x;
+        scrollY = y;
+    }
+
+    public void setAbsolute(int x, int y){
+        absoluteX = x;
+        absoluteY = y;
     }
 
     public int getX() {
@@ -58,6 +73,22 @@ public class MonkeyView implements Serializable, Comparable {
 
     public int getH() {
         return height;
+    }
+
+    public int getSX(){
+        return scrollX;
+    }
+
+    public int getSY(){
+        return scrollY;
+    }
+
+    public int getAX(){
+        return absoluteX;
+    }
+
+    public int getAY(){
+        return absoluteY;
     }
 
 
@@ -87,6 +118,14 @@ public class MonkeyView implements Serializable, Comparable {
         buffer.write(Integer.toString(mv.width));
         buffer.write(",");
         buffer.write(Integer.toString(mv.height));
+        buffer.write(",");
+        buffer.write(Integer.toString(mv.scrollX));
+        buffer.write(",");
+        buffer.write(Integer.toString(mv.scrollY));
+        buffer.write(",");
+        buffer.write(Integer.toString(mv.absoluteX));
+        buffer.write(",");
+        buffer.write(Integer.toString(mv.absoluteY));
         buffer.write(">");
         buffer.newLine();
 
@@ -103,7 +142,7 @@ public class MonkeyView implements Serializable, Comparable {
         //Infer click points from view hierarchy
         TreeSet<Integer> grids_x = new TreeSet<Integer>();
         TreeSet<Integer> grids_y = new TreeSet<Integer>();
-        this.collectGrid(grids_x, grids_y);
+        this.collectAbsoluteGrid(grids_x, grids_y);
 
         extendGrids(grids_x);
         extendGrids(grids_y);
@@ -112,11 +151,27 @@ public class MonkeyView implements Serializable, Comparable {
         return new CSet<T>(values);
     }
 
+    private void collectAbsoluteGrid(Collection<Integer> grids_x, Collection<Integer> grids_y){
+        grids_x.add(this.absoluteX);
+        grids_y.add(this.absoluteY);
+        if(this.width > 0)
+            grids_x.add(this.absoluteX + this.width - 1);
 
+        if(this.height > 0)
+            grids_y.add(this.absoluteY + this.height - 1);
+
+        if(this.children != null)
+            for(MonkeyView child : this.children){
+                child.collectAbsoluteGrid(grids_x, grids_y);
+            }
+    }
+
+    //DEPRECATED: We have to consider Attached location and Scrolled location of each view
+    //However, there is no way to collect Attached location information from outside.
+    /*
     private void collectGrid(Collection<Integer> grids_x, Collection<Integer> grids_y) {
         collectGrid(grids_x, grids_y, 0, 0);
     }
-
 
     private void collectGrid(Collection<Integer> grids_x, Collection<Integer> grids_y, int px, int py) {
         int my_x = px + this.x;
@@ -135,8 +190,34 @@ public class MonkeyView implements Serializable, Comparable {
             child.collectGrid(grids_x, grids_y, my_x, my_y);
         }
     }
+    */
 
 
+
+    public MonkeyView projectAbsolute(Integer ix, Integer iy){
+        //Miss
+        if(this.absoluteX > ix || this.absoluteX + this.width <= ix || this.absoluteY > iy || this.absoluteY + this.height <= iy)
+            return null;
+
+        //I'm hit and has child.
+        if(this.children != null){
+            //Assumption : children never intersect
+            MonkeyView projected_child;
+            for (MonkeyView child : children) {
+                projected_child = child.projectAbsolute(ix, iy);
+                if (projected_child != null)
+                    return projected_child;
+            }
+        }
+
+        //The point hit no child.
+        //Thus return my self.
+        if(this.visible)
+            return this;
+        return null;
+    }
+    //DEPRECATED: because of Scroll location and Attached location
+    /*
     public MonkeyView project(Integer x, Integer y) {
         try {
             return this.project(x, y, 0, 0);
@@ -176,6 +257,7 @@ public class MonkeyView implements Serializable, Comparable {
         //Thus return my self.
         return this;
     }
+    */
 
     private static void extendGrids(TreeSet<Integer> grids) {
         TreeSet<Integer> inter_grids = new TreeSet<Integer>();
@@ -198,7 +280,8 @@ public class MonkeyView implements Serializable, Comparable {
         MonkeyView hit;
         for (Integer x : grids_x) {
             for (Integer y : grids_y) {
-                hit = this.project(x, y);
+                //System.out.println("("+x+","+y+")");
+                hit = this.projectAbsolute(x, y);
                 if (hit != null) map.put(hit, factory.get(x, y));
             }
         }

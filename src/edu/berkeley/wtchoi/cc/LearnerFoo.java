@@ -53,7 +53,7 @@ public class LearnerFoo implements Learner<Command, ViewState, AppModel> {
     public CList<Command> getQuestion() {
         //CVector<Command> temp = new CVector<Command>();
         //temp.add(PushCommand.getMenu());
-        //temp.add(PushCommand.getMenu());
+        //temp.add(new TouchCommand(476,799));
         //return temp;
 
         if (candidateSet.isEmpty()) return null;
