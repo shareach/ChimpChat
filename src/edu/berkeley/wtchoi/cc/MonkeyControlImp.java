@@ -48,7 +48,7 @@ class MonkeyControlImp implements MonkeyControl {
             java.net.Socket socket;
 
             try {
-                serverSocket = new java.net.ServerSocket(13339);
+                serverSocket = new java.net.ServerSocket(13338);
                 System.out.println("wait");
                 socket = serverSocket.accept();
                 System.out.println("go");
