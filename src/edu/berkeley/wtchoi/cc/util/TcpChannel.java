@@ -61,8 +61,9 @@ public class TcpChannel<Packet> {
             System.out.println("TcpChannel connected");
 
             OutputStream os = socket.getOutputStream();
-            os.flush();
             oos = new java.io.ObjectOutputStream(os);
+            oos.flush();
+            os.flush();
 
             InputStream is = socket.getInputStream();
             ois = new java.io.ObjectInputStream(is);
@@ -96,9 +97,11 @@ public class TcpChannel<Packet> {
             }
             if(i == tryCount) throw new RuntimeException("Connection timeout!");
 
+            //NOTE! the other of opening streams is important!
             OutputStream os = socket.getOutputStream();
-            os.flush();
             oos = new ObjectOutputStream(os);
+            oos.flush();
+            os.flush();
 
             ois = new ObjectInputStream(socket.getInputStream());
 
@@ -141,6 +144,7 @@ public class TcpChannel<Packet> {
     public void sendPacket(Packet p){
         try{
             oos.writeObject(p);
+            oos.flush();
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -189,6 +193,20 @@ public class TcpChannel<Packet> {
     public void setTryInterval(int i){
         tryInterval = i;
     }
+
+    public void close(){
+        try{
+            oos.close();
+            ois.close();
+            socket.close();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("Cannot close channel");
+        }
+    }
+
+
 }
 
 

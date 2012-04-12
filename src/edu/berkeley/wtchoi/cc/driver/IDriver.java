@@ -25,7 +25,7 @@ public interface IDriver {
 
     public boolean go(ICommand input);
 
-    public ViewInfo getView();
+    public ViewInfo getCurrentView();
 
     public void shutdown();
 }

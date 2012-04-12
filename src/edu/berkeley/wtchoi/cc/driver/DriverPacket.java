@@ -1,5 +1,6 @@
 package edu.berkeley.wtchoi.cc.driver;
 
+import android.R;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo;
 
@@ -55,6 +56,13 @@ public class DriverPacket implements Serializable{
         return new DriverPacket(Type.ViewInfo, mv);
     }
 
+    public static DriverPacket getEnterEditText(int vid, String content){
+        Object[] obj = new Object[2];
+        obj[0] = vid;
+        obj[1] = content;
+        return new DriverPacket(Type.EnterEditText, obj);
+    }
+
     public int getId() {
         return id;
     }
@@ -65,16 +73,30 @@ public class DriverPacket implements Serializable{
 
     public int[] getDriverOption(){
         if(this.getType() == Type.SetOptions){
-        return (int[]) piggyback;
-    }
-        throw new RuntimeException("Wrong DriverPacket!");
+            return (int[]) piggyback;
+        }
+        throw new RuntimeException("Wrong DriverPacket!:"+this.toString());
     }
 
     public ViewInfo getView(){
         if(this.getType() == Type.ViewInfo){
-        return (ViewInfo) piggyback;
+            return (ViewInfo) piggyback;
+        }
+        throw new RuntimeException("Wrong DriverPacket!:"+this.toString());
     }
-        throw new RuntimeException("Wrong DriverPacket!");
+
+    public int getViewId(){
+        if(this.getType() == Type.EnterEditText){
+            return (Integer) ((Object[]) piggyback)[0];
+        }
+        throw new RuntimeException("Wrong DriverPacket:"+this.toString());
+    }
+
+    public String getString(){
+        if(this.getType() == Type.EnterEditText){
+            return (String) ((Object[]) piggyback)[1];
+        }
+        throw new RuntimeException("Wrong DriverPacket:"+this.toString());
     }
 
     public static enum OptionIndex{
@@ -83,6 +105,7 @@ public class DriverPacket implements Serializable{
         ITickInterval,
         ITickSnooze;
     }
+
 
     public static enum Type {
         Ack{
@@ -113,6 +136,12 @@ public class DriverPacket implements Serializable{
         Reset{
             public String toString(){
                 return "Reset";
+            }
+        },
+
+        EnterEditText{
+            public String toString(){
+                return "EnterEditTEct";
             }
         },
 

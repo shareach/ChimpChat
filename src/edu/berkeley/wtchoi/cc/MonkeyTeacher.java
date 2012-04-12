@@ -59,7 +59,7 @@ public class MonkeyTeacher implements TeacherP<ICommand, ViewState, AppModel> {
             if (!controller.go(t))
                 return null;
 
-            ViewInfo mv = controller.getView();
+            ViewInfo mv = controller.getCurrentView();
             System.out.println(mv);
             palette = mv.getRepresentativePoints(pointFactory);
             palette.addAll(defaultPalette);
@@ -86,7 +86,7 @@ public class MonkeyTeacher implements TeacherP<ICommand, ViewState, AppModel> {
             controller.restartApp();
             boolean result = controller.go(input);
             if (result) {
-                ViewInfo view = controller.getView();
+                ViewInfo view = controller.getCurrentView();
                 if (view == null) return null;
 
                 palette = view.getRepresentativePoints(pointFactory);
@@ -106,7 +106,7 @@ public class MonkeyTeacher implements TeacherP<ICommand, ViewState, AppModel> {
         if (!controller.initiateApp()) return false;
 
         //2. Warming palette table for initial state
-        ViewInfo view = controller.getView();
+        ViewInfo view = controller.getCurrentView();
         if (view == null) return false;
 
         CSet<ICommand> initialPalette = view.getRepresentativePoints(pointFactory);

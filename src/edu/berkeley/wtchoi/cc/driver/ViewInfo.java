@@ -31,6 +31,9 @@ public class ViewInfo implements Serializable, Comparable {
 
     //additional properties
     private boolean visible = false;
+    private boolean isEditText = false;
+    private String textContent;
+    private int id;
 
     @SuppressWarnings("unchecked")
     public ViewInfo(int ix, int iy, int iw, int ih, LinkedList<ViewInfo> ic) {
@@ -281,7 +284,7 @@ public class ViewInfo implements Serializable, Comparable {
             for (Integer y : grids_y) {
                 //System.out.println("("+x+","+y+")");
                 hit = this.projectAbsolute(x, y);
-                if (hit != null) map.put(hit, factory.get(x, y));
+                if (hit != null) map.put(hit, factory.get(x, y,hit));
             }
         }
         return map;
@@ -298,6 +301,30 @@ public class ViewInfo implements Serializable, Comparable {
     }
 
     public static interface PointFactory<T> {
-        public T get(int x, int y);
+        public T get(int x, int y, ViewInfo v);
+    }
+
+    public void setIsEditText(boolean f){
+        isEditText = f;
+    }
+
+    public boolean isEditText(){
+        return isEditText;
+    }
+
+    public void setTextContent(String s){
+        textContent = s;
+    }
+
+    public void setId(int id){
+        this.id = id;
+    }
+
+    public int getId(){
+        return this.id;
+    }
+
+    public ViewInfo findViewDbyPosition(int x, int y){
+        return projectAbsolute(x,y);
     }
 }

@@ -3,6 +3,7 @@ package edu.berkeley.wtchoi.cc.driver;
 import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.TouchPressType;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
+import edu.berkeley.wtchoi.cc.util.TcpChannel;
 
 /**
  * Created by IntelliJ IDEA.
@@ -12,25 +13,19 @@ import edu.berkeley.wtchoi.cc.util.IdentifierPool;
  * To change this template use File | Settings | File Templates.
  */
 //Concrete ICommand Position. We are going to use this as an input character
-public class TouchCommand implements ICommand {//TODO
+public final class TouchCommand extends ICommand {//TODO
     private Integer x;
     private Integer y;
 
     //All implementation of command should obtain integer identifier from
     private static final Integer tint = IdentifierPool.getFreshInteger();
 
-    public int compareTo(ICommand target) {
-        int c1 = tint.compareTo(target.typeint());
-        if(c1 != 0) return c1;
+    protected int compareSameType(ICommand target){
+        TouchCommand cmd = (TouchCommand) target;
 
-        TouchCommand t = (TouchCommand) target;
-        return this.compareTo(t);
-    }
-    
-    public int compareTo(TouchCommand target){
-        int c1 = x.compareTo(target.x);
+        int c1 = x.compareTo(cmd.x);
         if (c1 == 0) {
-            return y.compareTo(target.y);
+            return y.compareTo(cmd.y);
         }
         return c1;
     }
@@ -40,8 +35,9 @@ public class TouchCommand implements ICommand {//TODO
         this.y = y;
     }
 
-    public void sendCommand(IChimpDevice target) {
-        target.touch(x, y, TouchPressType.DOWN_AND_UP);
+    public void sendCommand(DriverImp driver) {
+        driver.mDevice.touch(x, y, TouchPressType.DOWN_AND_UP);
+        super.sendCommandAck(driver.channel);
     }
 
     public Integer getX() {

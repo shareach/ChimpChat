@@ -20,12 +20,13 @@ public class DriverImp implements IDriver {
     private DriverImpOption option;
         
     private ChimpChat mChimpchat;
-    private IChimpDevice mDevice;
 
-    private TcpChannel<DriverPacket> channel;
+    IChimpDevice mDevice;
+    TcpChannel<DriverPacket> channel;
 
     private boolean justRestarted = false;
-
+    private boolean isCurrentViewOld = true;
+    private ViewInfo currentView;
 
 
 
@@ -61,7 +62,7 @@ public class DriverImp implements IDriver {
         //channel.connectAsynchronous();
         channel = TcpChannel.getClientSide("127.0.0.1",13338);
         channel.setTryCount(5);
-        channel.setTryInterval(800);
+        channel.setTryInterval(1000);
 
         //2. Initiate ChimpChat connection
         String runComponent = option.getRunComponent();
@@ -113,6 +114,7 @@ public class DriverImp implements IDriver {
     public boolean restartApp() {
         if(justRestarted) return true;
         channel.sendPacket(DriverPacket.getReset());
+
         return initiateApp();
     }
 
@@ -123,7 +125,7 @@ public class DriverImp implements IDriver {
     }
 
 
-    public ViewInfo getView() {
+    ViewInfo getView() {
         ViewInfo mv;
         Object obj;
 
@@ -138,6 +140,15 @@ public class DriverImp implements IDriver {
         return mv;
     }
 
+    public ViewInfo getCurrentView(){
+        if(isCurrentViewOld){
+            currentView = getView();
+            isCurrentViewOld = false;
+        }
+        return currentView;
+
+    }
+
     public boolean go(List<? extends ICommand> clist) {
         //1. Send commands
         for (ICommand c : clist) {
@@ -148,25 +159,8 @@ public class DriverImp implements IDriver {
 
     public boolean go(ICommand c) {
         justRestarted = false;
-
-        //0. Assume application is waiting for command
-
-        //1.1 Send command through ChimpChat.
-        c.sendCommand(mDevice);
-
-        //1.2 Send command acknowledgement to App Supervisor
-        DriverPacket ack = DriverPacket.getAckCommand();
-        channel.sendPacket(ack);
-
-        //1.3 Wait for App Supervisor response
-        DriverPacket receivingPacket = channel.receivePacket();
-        if (receivingPacket.getType() != DriverPacket.Type.AckStable) {
-            //throw new RuntimeException(Application Execution is not guided correctly);
-            return false;
-        }
-
+        c.sendCommand(this);
+        isCurrentViewOld = true;
         return true;
     }
-
-
 }

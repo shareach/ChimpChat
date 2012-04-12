@@ -5,6 +5,7 @@ import com.android.chimpchat.core.PhysicalButton;
 import com.android.chimpchat.core.TouchPressType;
 
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
+import edu.berkeley.wtchoi.cc.util.TcpChannel;
 
 /**
  * Created by IntelliJ IDEA.
@@ -13,21 +14,27 @@ import edu.berkeley.wtchoi.cc.util.IdentifierPool;
  * Time: 8:50 PM
  * To change this template use File | Settings | File Templates.
  */
-public class PushCommand implements ICommand {
+public final class PushCommand extends ICommand {
 
     public enum Type{
         MENU;
     }
 
+    //All implementation of command should obtain integer identifier from
     private static final Integer typeint = IdentifierPool.getFreshInteger();
+
     private Type type;
 
-    public void sendCommand(IChimpDevice device){
+    public void sendCommand(DriverImp driver){
         switch(this.type){
             case MENU:
                 //Code fragment for push MENU button
-                device.press(PhysicalButton.MENU, TouchPressType.DOWN_AND_UP);
+                driver.mDevice.press(PhysicalButton.MENU, TouchPressType.DOWN_AND_UP);
+                break;
+            default:
+                return;
         }
+        super.sendCommandAck(driver.channel);
     }
 
     private PushCommand(Type t){
@@ -37,17 +44,10 @@ public class PushCommand implements ICommand {
     public static PushCommand getMenu(){
         return new PushCommand(Type.MENU);
     }
-
-    public int compareTo(ICommand target) {
-        int c1 = typeint.compareTo(target.typeint());
-        if(c1 != 0) return c1;
-
-        PushCommand t = (PushCommand) target;
-        return this.compareTo(t);
-    }
     
-    public int compareTo(PushCommand target){
-        return type.compareTo(target.type);
+    protected int compareSameType(ICommand target){
+        PushCommand cmd = (PushCommand) target;
+        return type.compareTo(cmd.type);
     }
     
     public Integer typeint(){
