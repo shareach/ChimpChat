@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.interfaces;
+package edu.berkeley.wtchoi.cc.learning;
 
 import java.io.Writer;
 

@@ -1,7 +1,7 @@
-package edu.berkeley.wtchoi.cc.interfaces;
+package edu.berkeley.wtchoi.cc.learning;
 
-import edu.berkeley.wtchoi.cc.util.CList;
-import edu.berkeley.wtchoi.cc.util.CSet;
+import edu.berkeley.wtchoi.cc.util.datatype.CList;
+import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 
 /**
  * Created by IntelliJ IDEA.

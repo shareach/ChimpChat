@@ -1,7 +1,8 @@
 package edu.berkeley.wtchoi.cc;
 
-import edu.berkeley.wtchoi.cc.interfaces.PointFactory;
-import edu.berkeley.wtchoi.cc.interfaces.Command;
+import edu.berkeley.wtchoi.cc.driver.TouchCommand;
+import edu.berkeley.wtchoi.cc.driver.ViewInfo.PointFactory;
+import edu.berkeley.wtchoi.cc.driver.ICommand;
 
 /**
  * Created by IntelliJ IDEA.
@@ -10,10 +11,10 @@ import edu.berkeley.wtchoi.cc.interfaces.Command;
  * Time: 7:50 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TouchFactory implements PointFactory<Command> {
+public class TouchFactory implements PointFactory<ICommand> {
     private static TouchFactory instance;
 
-    public Command get(int x, int y) {
+    public ICommand get(int x, int y) {
         return new TouchCommand(x, y) ;
     }
 

@@ -1,10 +1,8 @@
-package edu.berkeley.wtchoi.cc.util;
+package edu.berkeley.wtchoi.cc.util.datatype;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Vector;
 
 /**

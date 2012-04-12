@@ -1,10 +1,9 @@
-package edu.berkeley.wtchoi.cc;
+package edu.berkeley.wtchoi.cc.driver;
 
 import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.PhysicalButton;
 import com.android.chimpchat.core.TouchPressType;
 
-import edu.berkeley.wtchoi.cc.interfaces.Command;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
 
 /**
@@ -14,7 +13,7 @@ import edu.berkeley.wtchoi.cc.util.IdentifierPool;
  * Time: 8:50 PM
  * To change this template use File | Settings | File Templates.
  */
-public class PushCommand implements Command{
+public class PushCommand implements ICommand {
 
     public enum Type{
         MENU;
@@ -39,7 +38,7 @@ public class PushCommand implements Command{
         return new PushCommand(Type.MENU);
     }
 
-    public int compareTo(Command target) {
+    public int compareTo(ICommand target) {
         int c1 = typeint.compareTo(target.typeint());
         if(c1 != 0) return c1;
 

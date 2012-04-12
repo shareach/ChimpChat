@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc;
+package edu.berkeley.wtchoi.cc.driver;
 
 /**
  * Created by IntelliJ IDEA.
@@ -7,13 +7,16 @@ package edu.berkeley.wtchoi.cc;
  * Time: 8:46 PM
  * To change this template use File | Settings | File Templates.
  */
-class MonkeyControlOption{
+public class DriverImpOption {
     private String mainActivity;
     private String applicationPackage;
     private long   timeout = 5000;
     private String adb;
 
-    private TestingOptions testingOptions = null;
+    private int mTickCount;
+    private int mTickInterval;
+    private int mTickSnooze;
+    private int mStableCount;
 
 
     public void fillFromEnvironmentVariables(){
@@ -21,11 +24,11 @@ class MonkeyControlOption{
         applicationPackage = System.getenv("PACKAGE");//("com.android.demo.notepad3")
         mainActivity = System.getenv("MAIN_ACTIVITY");//("com.android.demo.notepad3.Notepadv3")
 
-        testingOptions = new TestingOptions();
-        testingOptions.tick_count = getenv_as_int("TICK_COUNT",10);
-        testingOptions.tick_interval = getenv_as_int("TICK_INTERVAL",100);
-        testingOptions.tick_snooze = getenv_as_int("TICK_SNOOZE",5);
-        testingOptions.stable_count = getenv_as_int("STABLE_COUNT",1);
+
+        mTickCount = getenv_as_int("TICK_COUNT", 5);
+        mTickInterval = getenv_as_int("TICK_INTERVAL",100);
+        mTickSnooze = getenv_as_int("TICK_SNOOZE",3);
+        mStableCount = getenv_as_int("STABLE_COUNT",1);
     }
 
     //to check whether all basic information is there
@@ -36,6 +39,18 @@ class MonkeyControlOption{
         return true;
     }
 
+    //to check and raise exception
+    public void assertComplete(){
+        if(mainActivity == null) throw new RuntimeException(__msg1);
+        if(applicationPackage == null) throw new RuntimeException(__msg2);
+        if(adb == null) throw new RuntimeException(__msg3);
+    }
+    private static String __msg1 = "Main Activity is not specified";
+    private static String __msg2 = "Application Package is not specified";
+    private static String __msg3 = "ADB path is not specified";
+
+
+    //get methods
     public String getApplicationPackage(){
         return applicationPackage;
     }
@@ -52,6 +67,24 @@ class MonkeyControlOption{
         return timeout;
     }
 
+    public int getTickCount(){
+        return mTickCount;
+    }
+
+    public int getTickInterval(){
+        return mTickInterval;
+    }
+
+    public int getTickSnooze(){
+        return mTickSnooze;
+    }
+
+    public int getStableCount(){
+        return mStableCount;
+    }
+
+
+    //set methods
     public void setMainActivity(String s){
         mainActivity = s;
     }
@@ -66,10 +99,6 @@ class MonkeyControlOption{
 
     public void setADB(String s){
         adb = s;
-    }
-
-    public TestingOptions getTestingOptions(){
-        return testingOptions;
     }
 
     private static int getenv_as_int(String envvar, int default_value){

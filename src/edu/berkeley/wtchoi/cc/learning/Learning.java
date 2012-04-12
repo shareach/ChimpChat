@@ -1,11 +1,8 @@
-package edu.berkeley.wtchoi.cc;
+package edu.berkeley.wtchoi.cc.learning;
 
 
-import edu.berkeley.wtchoi.cc.interfaces.Learner;
-import edu.berkeley.wtchoi.cc.interfaces.Model;
-import edu.berkeley.wtchoi.cc.interfaces.Teacher;
-import edu.berkeley.wtchoi.cc.util.CList;
-import edu.berkeley.wtchoi.cc.util.Pair;
+import edu.berkeley.wtchoi.cc.util.datatype.CList;
+import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
 /**
  * Created by IntelliJ IDEA.

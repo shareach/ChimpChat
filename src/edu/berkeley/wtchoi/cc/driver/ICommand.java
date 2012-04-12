@@ -1,7 +1,6 @@
-package edu.berkeley.wtchoi.cc.interfaces;
+package edu.berkeley.wtchoi.cc.driver;
 
 import com.android.chimpchat.core.IChimpDevice;
-import com.android.chimpchat.core.TouchPressType;
 
 /**
  * Created by IntelliJ IDEA.
@@ -10,10 +9,10 @@ import com.android.chimpchat.core.TouchPressType;
  * Time: 4:30 AM
  * To change this template use File | Settings | File Templates.
  */
-public interface Command extends Comparable<Command>{
+public interface ICommand extends Comparable<ICommand>{
     public void sendCommand(IChimpDevice target) throws RuntimeException;
 
     public Integer typeint();
-    //This is for fast comparison between different implementation of Command interface
+    //This is for fast comparison between different implementation of ICommand interface
     //All different implementation should use different Integer number;
 }

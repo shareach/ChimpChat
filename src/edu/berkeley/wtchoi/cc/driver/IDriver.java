@@ -1,7 +1,7 @@
-package edu.berkeley.wtchoi.cc.interfaces;
+package edu.berkeley.wtchoi.cc.driver;
 
-import edu.berkeley.wtchoi.cc.MonkeyView;
-import edu.berkeley.wtchoi.cc.TestingOptions;
+import edu.berkeley.wtchoi.cc.driver.ViewInfo;
+import edu.berkeley.wtchoi.cc.driver.ViewInfo;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
  * Time: 4:29 AM
  * To change this template use File | Settings | File Templates.
  */
-public interface MonkeyControl {
+public interface IDriver {
     public boolean connectToDevice();
 
     public boolean initiateApp();
@@ -21,13 +21,11 @@ public interface MonkeyControl {
 
     public boolean restartApp();
 
-    public boolean go(List<? extends Command> input);
+    public boolean go(List<? extends ICommand> input);
 
-    public boolean go(Command input);
+    public boolean go(ICommand input);
 
-    public MonkeyView getView();
+    public ViewInfo getView();
 
     public void shutdown();
-
-    public boolean setTestingOptions(TestingOptions options);
 }

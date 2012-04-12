@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.util;
+package edu.berkeley.wtchoi.cc.util.datatype;
 
 import java.util.List;
 

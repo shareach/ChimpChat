@@ -1,7 +1,6 @@
-package edu.berkeley.wtchoi.cc;
+package edu.berkeley.wtchoi.cc.driver;
 
-import edu.berkeley.wtchoi.cc.interfaces.PointFactory;
-import edu.berkeley.wtchoi.cc.util.CSet;
+import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 
 import java.lang.Comparable;
 import java.io.Serializable;
@@ -13,7 +12,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
-public class MonkeyView implements Serializable, Comparable {
+public class ViewInfo implements Serializable, Comparable {
     /**
      *
      */
@@ -28,20 +27,20 @@ public class MonkeyView implements Serializable, Comparable {
     private int scrollY = 0; //View.mScrollY;
     private int absoluteX = 0; //Absolute position on Screen;
     private int absoluteY = 0; //Absolute position on Screen;
-    private LinkedList<MonkeyView> children;
+    private LinkedList<ViewInfo> children;
 
     //additional properties
     private boolean visible = false;
 
     @SuppressWarnings("unchecked")
-    public MonkeyView(int ix, int iy, int iw, int ih, LinkedList<MonkeyView> ic) {
+    public ViewInfo(int ix, int iy, int iw, int ih, LinkedList<ViewInfo> ic) {
         x = ix;
         y = iy;
         width = iw;
         height = ih;
 
 
-        if (ic != null) children = (LinkedList<MonkeyView>) ic.clone();
+        if (ic != null) children = (LinkedList<ViewInfo>) ic.clone();
         else children = null;
     }
 
@@ -96,7 +95,7 @@ public class MonkeyView implements Serializable, Comparable {
         java.io.StringWriter sw = new java.io.StringWriter();
         BufferedWriter buffer = new BufferedWriter(sw);
         try {
-            MonkeyView.toString(buffer, this, 0);
+            ViewInfo.toString(buffer, this, 0);
             buffer.flush();
         } catch (Exception e) {
             System.out.println("Error occur!");
@@ -105,7 +104,7 @@ public class MonkeyView implements Serializable, Comparable {
         return sw.toString();
     }
 
-    private static void toString(BufferedWriter buffer, MonkeyView mv, int depth) throws java.io.IOException {
+    private static void toString(BufferedWriter buffer, ViewInfo mv, int depth) throws java.io.IOException {
         for (int i = 0; i < depth; i++) {
             buffer.write("  ");
         }
@@ -131,7 +130,7 @@ public class MonkeyView implements Serializable, Comparable {
 
         if (mv.children == null) return;
 
-        for (MonkeyView child : mv.children) {
+        for (ViewInfo child : mv.children) {
             toString(buffer, child, depth + 1);
         }
     }
@@ -161,7 +160,7 @@ public class MonkeyView implements Serializable, Comparable {
             grids_y.add(this.absoluteY + this.height - 1);
 
         if(this.children != null)
-            for(MonkeyView child : this.children){
+            for(ViewInfo child : this.children){
                 child.collectAbsoluteGrid(grids_x, grids_y);
             }
     }
@@ -186,7 +185,7 @@ public class MonkeyView implements Serializable, Comparable {
         grids_y.add(my_y + this.height);
 
         if (this.children == null) return;
-        for (MonkeyView child : this.children) {
+        for (ViewInfo child : this.children) {
             child.collectGrid(grids_x, grids_y, my_x, my_y);
         }
     }
@@ -194,7 +193,7 @@ public class MonkeyView implements Serializable, Comparable {
 
 
 
-    public MonkeyView projectAbsolute(Integer ix, Integer iy){
+    public ViewInfo projectAbsolute(Integer ix, Integer iy){
         //Miss
         if(this.absoluteX > ix || this.absoluteX + this.width <= ix || this.absoluteY > iy || this.absoluteY + this.height <= iy)
             return null;
@@ -202,8 +201,8 @@ public class MonkeyView implements Serializable, Comparable {
         //I'm hit and has child.
         if(this.children != null){
             //Assumption : children never intersect
-            MonkeyView projected_child;
-            for (MonkeyView child : children) {
+            ViewInfo projected_child;
+            for (ViewInfo child : children) {
                 projected_child = child.projectAbsolute(ix, iy);
                 if (projected_child != null)
                     return projected_child;
@@ -218,7 +217,7 @@ public class MonkeyView implements Serializable, Comparable {
     }
     //DEPRECATED: because of Scroll location and Attached location
     /*
-    public MonkeyView project(Integer x, Integer y) {
+    public ViewInfo project(Integer x, Integer y) {
         try {
             return this.project(x, y, 0, 0);
         } catch (Exception e) {
@@ -228,7 +227,7 @@ public class MonkeyView implements Serializable, Comparable {
         return null;
     }
 
-    private MonkeyView project(Integer x, Integer y, int px, int py) {
+    private ViewInfo project(Integer x, Integer y, int px, int py) {
         //System.out.println((px+x)+","+(y+py));
         int my_x = this.x + px;
         int my_y = this.y + py;
@@ -246,8 +245,8 @@ public class MonkeyView implements Serializable, Comparable {
         }
 
         //Assumption : children never intersect
-        MonkeyView projected_child;
-        for (MonkeyView child : children) {
+        ViewInfo projected_child;
+        for (ViewInfo child : children) {
             projected_child = child.project(x, y, my_x, my_y);
             if (projected_child != null)
                 return projected_child;
@@ -275,9 +274,9 @@ public class MonkeyView implements Serializable, Comparable {
 
     }
 
-    private <T> Map<MonkeyView, T> generatePoints(TreeSet<Integer> grids_x, TreeSet<Integer> grids_y, PointFactory<T> factory) {
-        TreeMap<MonkeyView, T> map = new TreeMap<MonkeyView, T>();
-        MonkeyView hit;
+    private <T> Map<ViewInfo, T> generatePoints(TreeSet<Integer> grids_x, TreeSet<Integer> grids_y, PointFactory<T> factory) {
+        TreeMap<ViewInfo, T> map = new TreeMap<ViewInfo, T>();
+        ViewInfo hit;
         for (Integer x : grids_x) {
             for (Integer y : grids_y) {
                 //System.out.println("("+x+","+y+")");
@@ -289,12 +288,16 @@ public class MonkeyView implements Serializable, Comparable {
     }
 
     @SuppressWarnings("unchecked")
-    LinkedList<MonkeyView> getChildren() {
-        return (LinkedList<MonkeyView>) children.clone();
+    LinkedList<ViewInfo> getChildren() {
+        return (LinkedList<ViewInfo>) children.clone();
     }
 
     @Override
     public int compareTo(Object o) {
         return this.toString().compareTo(o.toString());
+    }
+
+    public static interface PointFactory<T> {
+        public T get(int x, int y);
     }
 }
