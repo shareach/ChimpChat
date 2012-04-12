@@ -1,10 +1,11 @@
 package edu.berkeley.wtchoi.cc.util;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import android.util.Log;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -19,10 +20,13 @@ public class TcpChannel<Packet> {
     private Socket socket;
 
     private int port;
-    private String ip = null; // -1 indicate server mode
+    private String ip = null; // null indicate server mode
+
+    private int tryCount = 1;
+    private int tryInterval = 100;
 
     //used for asynchronous connection
-    private ChannelInitiator __initiator;
+    private Thread __initiator;
 
     private TcpChannel(){}
 
@@ -35,8 +39,12 @@ public class TcpChannel<Packet> {
     }
 
     public void connect(){
-        if(ip == null) listenForClient();
-        else connectToServer();
+        if(ip == null){
+            listenForClient();
+        }
+        else{
+            connectToServer();
+        }
     }
 
     private void listenForClient(){
@@ -48,35 +56,68 @@ public class TcpChannel<Packet> {
         catch(IOException e){return;}
 
         try{
+            System.out.println("TcpChannel is Listening");
             socket = serverSocket.accept();
-            ois = new java.io.ObjectInputStream(socket.getInputStream());
-            oos = new java.io.ObjectOutputStream(socket.getOutputStream());
+            System.out.println("TcpChannel connected");
+
+            OutputStream os = socket.getOutputStream();
+            os.flush();
+            oos = new java.io.ObjectOutputStream(os);
+
+            InputStream is = socket.getInputStream();
+            ois = new java.io.ObjectInputStream(is);
+
+            System.out.println("Closing Server Socket");
+            serverSocket.close();
         }
         catch(IOException e){
             try{serverSocket.close();} catch(Exception ee){}
         }
     }
 
-    private void connectToServer(){
-        try{
-            socket = new Socket(ip,port);
-            ois = new java.io.ObjectInputStream(socket.getInputStream());
-            oos = new java.io.ObjectOutputStream(socket.getOutputStream());
-        }
-        catch(Exception e){
+    private void connectToServer() {
+        //Log.d("wtchoi", "connectToServer:" + ip);
+        try {
+            int i;
+            for(i = 0 ; i < tryCount ; i++){
+                try {
+                    Thread.sleep(tryInterval);
+                    System.out.println(Integer.toString(i+1)+ "trial.");
+                    socket = new Socket(ip,port);
+                }
+                catch(UnknownHostException e){
+                    e.printStackTrace();
+                    throw new RuntimeException("Wrong ip address");
+                }
+                catch(IOException e){
+                    continue;
+                }
+                break;
+            }
+            if(i == tryCount) throw new RuntimeException("Connection timeout!");
+
+            OutputStream os = socket.getOutputStream();
+            os.flush();
+            oos = new ObjectOutputStream(os);
+
+            ois = new ObjectInputStream(socket.getInputStream());
+
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Cannot connect to server");
         }
     }
 
     public void connectAsynchronous(){
-        __initiator = new ChannelInitiator(this);
+        __initiator = new Thread(new ChannelInitiator(this));
         __initiator.start();
     }
 
     public void waitConnection(){
         try{
+            System.out.println("Channel Initiating");
             __initiator.join();
+            System.out.println("Channel Initiated");
         }
         catch(Exception e){
             e.printStackTrace();
@@ -93,7 +134,7 @@ public class TcpChannel<Packet> {
         ch.ip = ip;
         ch.port = port;
 
-        return null;
+        return ch;
     }
 
 
@@ -126,7 +167,7 @@ public class TcpChannel<Packet> {
     }
 
 
-    private static class ChannelInitiator extends Thread {
+    private static class ChannelInitiator implements Runnable {
         private TcpChannel channel;
 
         public ChannelInitiator(TcpChannel ch){
@@ -134,8 +175,19 @@ public class TcpChannel<Packet> {
         }
 
         public void run() {
+            System.out.println("Channel Initiation Start");
             channel.connect();
+            System.out.println("Channel Initiation Done");
+            return;
         }
+    }
+
+    public void setTryCount(int i){
+        tryCount = i;
+    }
+
+    public void setTryInterval(int i){
+        tryInterval = i;
     }
 }
 

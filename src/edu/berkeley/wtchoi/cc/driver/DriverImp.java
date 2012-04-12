@@ -56,9 +56,12 @@ public class DriverImp implements IDriver {
 
 
     public boolean initiateApp() {
-        //1. Initiate Communication TcpChannel (Asynchronous)
-        channel = TcpChannel.getServerSide(13338);
-        channel.connectAsynchronous();
+        ////1. Initiate Communication TcpChannel (Asynchronous)
+        //channel = TcpChannel.getServerSide(13338);
+        //channel.connectAsynchronous();
+        channel = TcpChannel.getClientSide("127.0.0.1",13338);
+        channel.setTryCount(5);
+        channel.setTryInterval(800);
 
         //2. Initiate ChimpChat connection
         String runComponent = option.getRunComponent();
@@ -68,7 +71,8 @@ public class DriverImp implements IDriver {
 
         //3. Wait for communication channel initiation
         System.out.println("wait");
-        channel.waitConnection();
+        channel.connect();
+        //channel.waitConnection();
         System.out.println("go");
         System.out.println("Waiting for application to be stable");
 
