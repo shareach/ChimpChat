@@ -63,6 +63,8 @@ public class DriverImp implements IDriver {
         channel = TcpChannel.getClientSide("127.0.0.1",13338);
         channel.setTryCount(5);
         channel.setTryInterval(1000);
+        channel.setPostSleep(0);
+        channel.setPreSleep(3000);
 
         //2. Initiate ChimpChat connection
         String runComponent = option.getRunComponent();

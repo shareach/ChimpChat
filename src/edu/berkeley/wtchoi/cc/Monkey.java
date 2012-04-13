@@ -8,14 +8,16 @@ import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.IDriver;
 import edu.berkeley.wtchoi.cc.learning.*;
 import edu.berkeley.wtchoi.cc.util.Logger;
+import edu.berkeley.wtchoi.cc.util.LoggerImp;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
+import edu.berkeley.wtchoi.cc.learning.Observation;
 //import com.android.chimpchat.core.IChimpView;
 
 
 public class Monkey {
     public static void main(String args[]) {
 
-        Logger.init(new Logger.LoggerImp() {
+        Logger.init(new LoggerImp() {
             @Override
             public void log(String s) {
                 System.out.println(s);
@@ -42,10 +44,10 @@ public class Monkey {
 }
 
 //View State Information. We are going to use it as output character
-class ViewState implements Comparable<ViewState> {
+class ViewState implements Observation<ViewState>{
     private CSet<ICommand> palette;
 
-    public int compareTo(ViewState target) {
+    public int compareTo(ViewState target){
         return palette.compareTo(target.palette);
     }
 

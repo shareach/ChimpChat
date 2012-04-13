@@ -1,9 +1,5 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-import android.R;
-import edu.berkeley.wtchoi.cc.driver.ViewInfo;
-import edu.berkeley.wtchoi.cc.driver.ViewInfo;
-
 import java.io.Serializable;
 
 public class DriverPacket implements Serializable{

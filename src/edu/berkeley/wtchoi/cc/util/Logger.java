@@ -17,8 +17,4 @@ public abstract class Logger {
     public static void log(String s){
         logger.log(s);
     }
-
-    public interface LoggerImp{
-        public void log(String s);
-    }
 }

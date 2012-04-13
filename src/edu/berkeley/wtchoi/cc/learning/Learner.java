@@ -11,7 +11,7 @@ import edu.berkeley.wtchoi.cc.util.datatype.Pair;
  * Time: 4:27 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface Learner<I extends Comparable<I>, O extends Comparable<O>, M extends Model<I, O>> {
+public interface Learner<I extends Comparable<I>, O extends Observation<O>, M extends Model<I, O>> {
     public boolean learnedHypothesis();
 
     public CList<I> getQuestion();

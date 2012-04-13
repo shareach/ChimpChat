@@ -12,7 +12,7 @@ import edu.berkeley.wtchoi.cc.util.datatype.Pair;
  * To change this template use File | Settings | File Templates.
  */
 
-public class Learning<I extends Comparable<I>, O extends Comparable<O>, M extends Model<I, O>> {
+public class Learning<I extends Comparable<I>, O extends Observation<O>, M extends Model<I, O>> {
     private Learner<I, O, M> learner;
     private Teacher<I, O, M> teacher;
     private M model;

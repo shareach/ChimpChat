@@ -21,7 +21,9 @@ public class TcpChannel<Packet> {
     private String ip = null; // null indicate server mode
 
     private int tryCount = 1;
-    private int tryInterval = 100;
+    private int tryInterval = 1000;
+    private int postSleep = 100;
+    private int preSleep = 100;
 
     //used for asynchronous connection
     private Thread __initiator;
@@ -54,6 +56,7 @@ public class TcpChannel<Packet> {
         catch(IOException e){return;}
 
         try{
+            //try{Thread.sleep(100000);}catch(Exception e){}
             Logger.log("TcpChannel is Listening") ;
             socket = serverSocket.accept();
             Logger.log("TcpChannel connected") ;
@@ -66,7 +69,7 @@ public class TcpChannel<Packet> {
             InputStream is = socket.getInputStream();
             ois = new java.io.ObjectInputStream(is);
 
-            Logger.log("Closing Server Socket") ;
+            Logger.log("Closing Server Socket");
             serverSocket.close();
         }
         catch(IOException e){
@@ -77,25 +80,31 @@ public class TcpChannel<Packet> {
     private void connectToServer() {
         //Log.d("wtchoi", "connectToServer:" + ip);
         try {
+            Thread.sleep(preSleep);
+
             int i;
             for(i = 0 ; i < tryCount ; i++){
                 try {
-                    Thread.sleep(tryInterval);
                     System.out.println(Integer.toString(i+1)+ "trial.");
                     socket = new Socket(ip,port);
+                    Logger.log("Connected!");
                 }
                 catch(UnknownHostException e){
                     e.printStackTrace();
                     throw new RuntimeException("Wrong ip address");
                 }
                 catch(IOException e){
+                    Thread.sleep(tryInterval);
                     continue;
                 }
                 break;
             }
             if(i == tryCount) throw new RuntimeException("Connection timeout!");
 
-            //NOTE! the other of opening streams is important!
+            //Sleep a while to wait device to be ready
+            Thread.sleep(postSleep);
+
+            //NOTE! the order of opening streams is important!
             OutputStream os = socket.getOutputStream();
             oos = new ObjectOutputStream(os);
             oos.flush();
@@ -204,7 +213,13 @@ public class TcpChannel<Packet> {
         }
     }
 
+    public void setPostSleep(int t){
+        postSleep = t;
+    }
 
+    public void setPreSleep(int t){
+        preSleep = t;
+    }
 }
 
 
