@@ -1,6 +1,7 @@
 package edu.berkeley.wtchoi.cc.driver;
 
 import com.android.chimpchat.core.IChimpDevice;
+import com.android.chimpchat.core.TouchPressType;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
 import edu.berkeley.wtchoi.cc.util.TcpChannel;
 
@@ -26,10 +27,17 @@ public final class EnterCommand extends ICommand {
     }
 
     public void sendCommand(DriverImp driver){
-        ViewInfo currentView = driver.getCurrentView();
-        int id = currentView.findViewDbyPosition(x,y).getId();
-        DriverPacket p = DriverPacket.getEnterEditText(id,content);
-        driver.channel.sendPacket(p);
+        char[] contents = content.toCharArray();
+        String temp = "";
+        for(char c: contents){
+            if(c == ' '){
+                driver.mDevice.press("KEYCODE_SPACE", TouchPressType.DOWN_AND_UP);
+                continue;
+            }
+            driver.mDevice.type(String.valueOf(c));
+        }
+        //driver.mDevice.type(content);
+        //super.sendCommandAck(driver.channel);
     }
 
     public Integer typeint(){

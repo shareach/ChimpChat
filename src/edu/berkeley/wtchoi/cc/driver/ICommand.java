@@ -22,11 +22,17 @@ public abstract class ICommand implements Comparable<ICommand>{
 
     //Please call this function, after sending chimpchat command
     protected void sendCommandAck(TcpChannel<DriverPacket> channel){
-        //1.2 Send command acknowledgement to App Supervisor
+        //1. Send command acknowledgement to App Supervisor
         DriverPacket ack = DriverPacket.getAckCommand();
         channel.sendPacket(ack);
 
-        //1.3 Wait for App Supervisor response
+        //2. Minor sleep
+        try{
+            Thread.sleep(1000);
+        }
+        catch(Exception e){ }
+
+        //3. Wait for App Supervisor response
         DriverPacket receivingPacket;
         receivingPacket = channel.receivePacket();
         if (receivingPacket.getType() != DriverPacket.Type.AckStable) {

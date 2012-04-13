@@ -113,6 +113,7 @@ public class DriverImp implements IDriver {
 
     public boolean restartApp() {
         if(justRestarted) return true;
+        isCurrentViewOld = false;
         channel.sendPacket(DriverPacket.getReset());
 
         return initiateApp();

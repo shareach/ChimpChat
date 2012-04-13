@@ -26,11 +26,11 @@ public class Learning<I extends Comparable<I>, O extends Comparable<O>, M extend
         while (true) {
             //1. Do hypothesis generation, if not finished
             if (!learner.learnedHypothesis()) {
-                try {
-                    System.out.println("Stroke any key to go");
-                    System.in.read();
-                } catch (Exception e) {
-                }
+                //try {
+                //    System.out.println("Stroke any key to go");
+                //    System.in.read();
+                //} catch (Exception e) {
+                //}
 
                 CList<I> question = learner.getQuestion();
                 CList<O> answer = teacher.checkMembership(question);

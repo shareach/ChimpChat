@@ -7,12 +7,20 @@ import edu.berkeley.wtchoi.cc.driver.DriverImpOption;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.IDriver;
 import edu.berkeley.wtchoi.cc.learning.*;
+import edu.berkeley.wtchoi.cc.util.Logger;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 //import com.android.chimpchat.core.IChimpView;
 
 
 public class Monkey {
     public static void main(String args[]) {
+
+        Logger.init(new Logger.LoggerImp() {
+            @Override
+            public void log(String s) {
+                System.out.println(s);
+            }
+        });
 
         DriverImpOption option = new DriverImpOption();
         option.fillFromEnvironmentVariables();
@@ -22,7 +30,8 @@ public class Monkey {
 
         if(!teacher.init()) throw new RuntimeException("Cannot initialize teacher");
 
-        Learner<ICommand, ViewState, AppModel> learner = new LearnerFoo(teacher);// = new PaletteLearnerImp(teacher);
+        LearnerFoo foo = new LearnerFoo(teacher);
+        Learner<ICommand, ViewState, AppModel> learner = foo;// = new PaletteLearnerImp(teacher);
 
         Learning<ICommand, ViewState, AppModel> learning = new Learning<ICommand, ViewState, AppModel>(learner, teacher);
         learning.run();

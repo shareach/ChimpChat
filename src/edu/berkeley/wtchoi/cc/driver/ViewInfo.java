@@ -32,6 +32,7 @@ public class ViewInfo implements Serializable, Comparable {
     //additional properties
     private boolean visible = false;
     private boolean isEditText = false;
+    private boolean hasFocus = false;
     private String textContent;
     private int id;
 
@@ -320,11 +321,15 @@ public class ViewInfo implements Serializable, Comparable {
         this.id = id;
     }
 
-    public int getId(){
-        return this.id;
+    public void setFocus(boolean f){
+        hasFocus = f;
     }
 
-    public ViewInfo findViewDbyPosition(int x, int y){
-        return projectAbsolute(x,y);
+    public boolean hasFocus(){
+        return this.hasFocus;
+    }
+
+    public int getId(){
+        return this.id;
     }
 }

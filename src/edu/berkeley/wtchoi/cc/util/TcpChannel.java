@@ -1,7 +1,5 @@
 package edu.berkeley.wtchoi.cc.util;
 
-import android.util.Log;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -56,9 +54,9 @@ public class TcpChannel<Packet> {
         catch(IOException e){return;}
 
         try{
-            System.out.println("TcpChannel is Listening");
+            Logger.log("TcpChannel is Listening") ;
             socket = serverSocket.accept();
-            System.out.println("TcpChannel connected");
+            Logger.log("TcpChannel connected") ;
 
             OutputStream os = socket.getOutputStream();
             oos = new java.io.ObjectOutputStream(os);
@@ -68,7 +66,7 @@ public class TcpChannel<Packet> {
             InputStream is = socket.getInputStream();
             ois = new java.io.ObjectInputStream(is);
 
-            System.out.println("Closing Server Socket");
+            Logger.log("Closing Server Socket") ;
             serverSocket.close();
         }
         catch(IOException e){
@@ -118,9 +116,9 @@ public class TcpChannel<Packet> {
 
     public void waitConnection(){
         try{
-            System.out.println("Channel Initiating");
+            Logger.log("Channel Initiating") ;
             __initiator.join();
-            System.out.println("Channel Initiated");
+            Logger.log("Channel Initiated");
         }
         catch(Exception e){
             e.printStackTrace();
@@ -179,9 +177,9 @@ public class TcpChannel<Packet> {
         }
 
         public void run() {
-            System.out.println("Channel Initiation Start");
+            Logger.log("Channel Initiation Start");
             channel.connect();
-            System.out.println("Channel Initiation Done");
+            Logger.log("Channel Initiation Done") ;
             return;
         }
     }
