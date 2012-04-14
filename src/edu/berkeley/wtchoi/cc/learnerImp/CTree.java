@@ -203,12 +203,14 @@ class CTree{
         String id1 = String.valueOf(n.id);
         if(!n.children.isEmpty())
             gv.addln(id1+" [style=bold, color=gray];");
-            gv.addln("S [style=bold];");
+        if(n.isStopNode)
+            gv.addln(id1+" [style=bold];");
+
 
         for(ICommand i: n.children.keySet()){
 
             Node child =n.children.get(i).fst;
-            String id2 = child.isStopNode ? "S" : String.valueOf(child.id);
+            String id2 = String.valueOf(child.id);
             if(leafSet.contains(child)){
                 gv.addln(id1 + "->" + id2 + "[label=\""+ i +"\"];");
             }
