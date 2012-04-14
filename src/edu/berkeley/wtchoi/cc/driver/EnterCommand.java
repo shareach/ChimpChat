@@ -16,6 +16,7 @@ public final class EnterCommand extends ICommand {
     private int x;
     private int y;
     private String content;
+    private boolean concatMode = false;
 
     //All implementation of command should obtain integer identifier from
     private static final Integer tint = IdentifierPool.getFreshInteger();
@@ -24,6 +25,13 @@ public final class EnterCommand extends ICommand {
         this.x = x;
         this.y = y;
         this.content = content;
+    }
+
+    public EnterCommand(int x, int y, String content, boolean mode){
+        this.x = x;
+        this.y = y;
+        this.content = content;
+        this.concatMode = mode;
     }
 
     public void sendCommand(DriverImp driver){
@@ -36,6 +44,7 @@ public final class EnterCommand extends ICommand {
             }
             driver.mDevice.type(String.valueOf(c));
         }
+        super.sendCommandAck(driver.channel);
         //driver.mDevice.type(content);
         //super.sendCommandAck(driver.channel);
     }
@@ -50,14 +59,18 @@ public final class EnterCommand extends ICommand {
         if(f == 0){
             f = (new Integer(y)).compareTo(cmd.y);
             if(f == 0){
-                return content.compareTo(cmd.content);
+                //return content.compareTo(cmd.content);
+                if(concatMode == cmd.concatMode) return 0;
+                if(concatMode && !cmd.concatMode) return 1;
+                else return -1;
             }
         }
         return f;
     }
 
     public String toString(){
-        return "T("+x+","+y+")";
+        if(concatMode) return "TE("+x+","+y+")";
+        return "E("+x+","+y+")";
     }
 
 }

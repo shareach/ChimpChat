@@ -6,7 +6,7 @@ import edu.berkeley.wtchoi.cc.driver.DriverImp;
 import edu.berkeley.wtchoi.cc.driver.DriverImpOption;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.IDriver;
-import edu.berkeley.wtchoi.cc.learnerImp.LearnerFoo;
+import edu.berkeley.wtchoi.cc.learnerImp.TreeLearner;
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
 import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
 import edu.berkeley.wtchoi.cc.learning.*;
@@ -35,7 +35,7 @@ public class Monkey {
         if(!teacher.init()) throw new RuntimeException("Cannot initialize teacher");
 
         CSet<ICommand> initialPalette = controller.getCurrentView().getRepresentativePoints(TouchFactory.getInstance());
-        LearnerFoo foo = new LearnerFoo(initialPalette);
+        TreeLearner foo = new TreeLearner(initialPalette);
         Learner<ICommand, Observation, AppModel> learner = foo;// = new PaletteLearnerImp(teacher);
 
         Learning<ICommand, Observation, AppModel> learning = new Learning<ICommand, Observation, AppModel>(learner, teacher);

@@ -332,4 +332,8 @@ public class ViewInfo implements Serializable, Comparable {
     public int getId(){
         return this.id;
     }
+
+    public String getTextContent(){
+        return textContent;
+    }
 }

@@ -25,9 +25,9 @@ public class DriverImpOption {
         mainActivity = System.getenv("MAIN_ACTIVITY");//("com.android.demo.notepad3.Notepadv3")
 
 
-        mTickCount = getenv_as_int("TICK_COUNT", 5);
+        mTickCount = getenv_as_int("TICK_COUNT", 4);
         mTickInterval = getenv_as_int("TICK_INTERVAL",100);
-        mTickSnooze = getenv_as_int("TICK_SNOOZE",3);
+        mTickSnooze = getenv_as_int("TICK_SNOOZE",2);
         mStableCount = getenv_as_int("STABLE_COUNT",1);
     }
 

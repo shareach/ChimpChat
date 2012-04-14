@@ -148,10 +148,16 @@ public class TcpChannel<Packet> {
     }
 
 
+    static int sendCounter = 1;
+    static int sendCounterReset = 1000;
     public void sendPacket(Packet p){
+
         try{
             oos.writeObject(p);
             oos.flush();
+            if(((++sendCounter) % sendCounterReset) == 0){
+                oos.reset();
+            }
         }
         catch(IOException e) {
             e.printStackTrace();

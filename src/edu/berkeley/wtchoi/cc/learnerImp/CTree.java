@@ -26,7 +26,7 @@ class CTree{
 
     class Node implements Comparable<Node> {
 
-        private Integer id;
+        protected Integer id;
         private CSet<ICommand> palette;
 
         Node parent;
@@ -42,21 +42,31 @@ class CTree{
             leafSet.add(this);
         }
 
-        private Node(Node p, ICommand i, Observation o){
+        private Node(Node p, ICommand i){
             parent = p;
             inputFromParent = i;
-
-            if(o != null){
-                tiFromParent = o.getAugmentation();
-                palette = o.getPalette();
-            }
             children = new TreeMap<ICommand,Pair<Node,Observation>>();
             id = nidset++;
             leafSet.add(this);
         }
 
+        private Node(){}
+
         public int compareTo(Node target){
             return id.compareTo(target.id);
+        }
+    }
+
+    class MergeNode extends Node{
+        private Node mergeTo;
+
+        public MergeNode(Node target, Node to){
+            parent = target.parent;
+            inputFromParent = target.inputFromParent;
+            tiFromParent = target.tiFromParent;
+            id = target.id;
+            mergeTo = to;
+
         }
     }
 
@@ -86,19 +96,17 @@ class CTree{
         Observation o;
 
         for(ICommand i : ilst){
-            o = oiter.hasNext() ? oiter.next() : null;
-            if(!cur.children.containsKey(i)){
-                Node temp = new Node(cur,i,o);
-                extend(temp);
-                cur = temp;
+            o = oiter.next();
+            Pair<Node,Observation> child = cur.children.get(i);
+            if(child.snd == null){
+                child.setSecond(o);
+                child.fst.palette = o.getPalette();
+                child.fst.tiFromParent = o.getAugmentation();
+                System.out.println("TI!:" + o.getAugmentation().didNothing());
+                extend(child.fst);
             }
-            else{
-                Pair<Node,Observation> child = cur.children.get(i);
-                if(child.snd == null) child.setSecond(o);
-                cur = child.fst;
-            }
+            cur = child.fst;
         }
-        updateView();
     }
 
     public void buildInputPath(Node target, List<ICommand> lst){
@@ -107,34 +115,73 @@ class CTree{
         lst.add(target.inputFromParent);
     }
 
-    public CSet<ICommand> getLastView(List<ICommand> ilst){
-        Node cur = root;
-        for(ICommand i: ilst){
-            Pair<Node,Observation> temp = cur.children.get(i);
-            if(temp == null) throw new RuntimeException("No Transition!");
-            cur = temp.fst;
-        }
-        return cur.palette;
-    }
-
-
     public void extend(Node target){
         leafSet.remove(target);
-        for(ICommand option : target.palette){
-            Observation o = null;
-            Node temp = new Node(target, option, o);
-            target.children.put(option, new Pair<Node,Observation>(temp,o));
+        for(ICommand i : target.palette){
+            Node temp = new Node(target, i);
+            target.children.put(i, new Pair<Node,Observation>(temp,null));
         }
-        for(ICommand option : defaultPalette){
-            Observation o = null;
-            Node temp = new Node(target, option, o);
-            target.children.put(option, new Pair<Node,Observation>(temp,o));
+        for(ICommand i : defaultPalette){
+            Node temp = new Node(target, i);
+            target.children.put(i, new Pair<Node,Observation>(temp,null));
         }
-        updateView();
     }
 
     public final Set<Node> getLeafSet(){
         return leafSet;
+    }
+
+    public void tryPruning(List<ICommand> ilst){
+        Node target = getNode(ilst);
+        if(!target.tiFromParent.didNothing()) return;
+
+        CSet<Node> candidates = new CSet<Node>();
+        candidates.add(target.parent);
+
+        CSet<Node> candidates2 = new CSet<Node>();
+
+        while(!candidates.isEmpty()){
+            Node candidate = candidates.pollFirst();
+            if(candidate.palette.compareTo(target.palette) == 0){
+                doMerge(target, candidate);
+                return;
+            }
+
+            if(candidate.parent != null && candidate.tiFromParent.didNothing()){
+                candidates.add(candidate.parent);
+                for(Pair<Node,Observation> ch: candidate.parent.children.values()){
+                    if(ch.fst.id == candidate.id) continue;
+                    if(ch.fst.tiFromParent.didNothing() && ! (ch.fst instanceof MergeNode))
+                        candidates2.add(ch.fst);
+                }
+            }
+        }
+
+        while(!candidates2.isEmpty()){
+            Node candidate = candidates2.pollFirst();
+            if(candidate.palette.compareTo(target.palette) == 0){
+                doMerge(target, candidate);
+                return;
+            }
+
+            for(Pair<Node,Observation> ch: candidate.children.values()){
+                if(leafSet.contains(ch.fst)) continue;
+                if(ch.fst.tiFromParent.didNothing() && ! (ch.fst instanceof MergeNode))
+                    candidates2.add(ch.fst);
+            }
+        }
+    }
+
+    private void doMerge(Node target, Node to){
+        Node ghost = new MergeNode(target,to);
+        target.parent.children.get(target.inputFromParent).setFirst(ghost);
+        remove(target);
+    }
+
+    private void remove(Node n){
+        leafSet.remove(n);
+        for(Pair<Node,Observation> ch : n.children.values())
+            remove(ch.getFirst());
     }
 
     public void drawTree(String path){
@@ -144,7 +191,7 @@ class CTree{
         gv.addln(gv.end_graph());
 
         java.io.File out = new java.io.File(path);
-        gv.writeGraphToFile(gv.getGraph(gv.getDotSource(),"gif"), out);
+        gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), "gif"), out);
     }
 
     private void drawTree(Node n, GraphViz gv){
@@ -160,7 +207,19 @@ class CTree{
                 gv.addln(id1 + "->" + id2 + "[label=\""+ i +"\"];");
             }
             else{
-                gv.addln(id1 + "->" + id2 + "[label=\""+ i+"\"];");
+                if(child instanceof MergeNode){
+                    MergeNode node = (MergeNode) child;
+                    gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
+                    continue;
+                }
+                else{
+                    if(child.tiFromParent.didNothing()){
+                        gv.addln(id1 + "->" + id2 + "[style=bold, color=gray, label=\""+ i+"\"];");
+                    }
+                    else{
+                        gv.addln(id1 + "->" + id2 + "[style=bold, label=\""+ i+"\"];");
+                    }
+                }
             }
             drawTree(child, gv);
         }
@@ -172,10 +231,11 @@ class CTree{
         SwingUtilities.invokeLater(viewer);
     }
 
-    private void updateView(){
+    public void updateView(){
         if(viewer != null)
             viewer.reload();
     }
+
 
     static class ImagePanel extends JPanel{
 

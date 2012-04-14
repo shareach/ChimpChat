@@ -28,7 +28,7 @@ public abstract class ICommand implements Comparable<ICommand>{
 
         //2. Minor sleep
         try{
-            Thread.sleep(1000);
+            Thread.sleep(500);
         }
         catch(Exception e){ }
 

@@ -3,14 +3,11 @@ package edu.berkeley.wtchoi.cc.learnerImp;
 import edu.berkeley.wtchoi.cc.AppModel;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.PushCommand;
-import edu.berkeley.wtchoi.cc.learnerImp.CTree;
 import edu.berkeley.wtchoi.cc.learning.Learner;
 import edu.berkeley.wtchoi.cc.util.datatype.CList;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.CVector;
 import edu.berkeley.wtchoi.cc.util.datatype.Pair;
-
-import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -19,12 +16,12 @@ import java.util.*;
  * Time: 7:59 PM
  * To change this template use File | Settings | File Templates.
  */
-public class LearnerFoo implements Learner<ICommand, Observation, AppModel> {
+public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     private CTree ctree;
     private CSet<ICommand> defaultPalette;
 
 
-    public LearnerFoo(CSet<ICommand> initialPalette) {
+    public TreeLearner(CSet<ICommand> initialPalette) {
         defaultPalette = new CSet<ICommand>();
         defaultPalette.add(PushCommand.getMenu());
 
@@ -50,6 +47,9 @@ public class LearnerFoo implements Learner<ICommand, Observation, AppModel> {
 
     public void learn(CList<ICommand> input, CList<Observation> output) {
         ctree.addPath(input,output);
+        ctree.updateView();
+        ctree.tryPruning(input);
+        ctree.updateView();
     }
 
     public void learnCounterExample(Pair<CList<ICommand>, CList<Observation>> ce) {

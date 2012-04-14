@@ -27,6 +27,6 @@ public class Observation implements Comparable<Observation>{
     public TransitionInfo getAugmentation(){ return augmentation;}
 
     public String toString(){
-        return palette.toString();
+        return palette.toString()+augmentation.didNothing();
     }
 }
