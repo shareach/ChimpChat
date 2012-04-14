@@ -2,7 +2,6 @@ package edu.berkeley.wtchoi.cc;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.IDriver;
-import edu.berkeley.wtchoi.cc.driver.PushCommand;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo.PointFactory;
 
@@ -51,8 +50,10 @@ public class TeacherImp implements Teacher<ICommand, Observation, AppModel> {
 
         controller.restartApp();
         for (ICommand t : input) {
-            if (!controller.go(t))
-                return null;
+            if (!controller.go(t)){
+                output.add(Observation.getStopObservation());
+                return output;
+            }
 
             //Obtaining palette
             ViewInfo mv = controller.getCurrentView();

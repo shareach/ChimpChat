@@ -18,15 +18,7 @@ public class TouchFactory implements PointFactory<ICommand> {
 
     public ICommand get(int x, int y, ViewInfo v) {
         if(v.isEditText()){
-            if(v.hasFocus()){
-                if(v.getTextContent().equals(""))
-                    return new EnterCommand(x, y, "random string");
-                return new EnterCommand(x,y,"random string",true);
-            }
-            else{
-                if(!v.getTextContent().equals(""))
-                    return new TouchCommand(x,y,true);
-            }
+            return new EnterCommand(x,y,v.getTextContent(),"random string",v.hasFocus());
         }
         return new TouchCommand(x, y) ;
     }

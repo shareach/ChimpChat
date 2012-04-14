@@ -62,17 +62,19 @@ public class TcpChannel<Packet> {
             Logger.log("TcpChannel connected") ;
 
             OutputStream os = socket.getOutputStream();
+            InputStream is = socket.getInputStream();
+
             oos = new java.io.ObjectOutputStream(os);
             oos.flush();
             os.flush();
 
-            InputStream is = socket.getInputStream();
             ois = new java.io.ObjectInputStream(is);
 
             Logger.log("Closing Server Socket");
             serverSocket.close();
         }
         catch(IOException e){
+            e.printStackTrace();
             try{serverSocket.close();} catch(Exception ee){}
         }
     }
@@ -106,11 +108,13 @@ public class TcpChannel<Packet> {
 
             //NOTE! the order of opening streams is important!
             OutputStream os = socket.getOutputStream();
+            InputStream is = socket.getInputStream();
+
             oos = new ObjectOutputStream(os);
             oos.flush();
             os.flush();
 
-            ois = new ObjectInputStream(socket.getInputStream());
+            ois = new ObjectInputStream(is);
 
         } catch (Exception e) {
             e.printStackTrace();

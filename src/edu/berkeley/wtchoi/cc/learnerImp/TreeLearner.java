@@ -24,6 +24,7 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     public TreeLearner(CSet<ICommand> initialPalette) {
         defaultPalette = new CSet<ICommand>();
         defaultPalette.add(PushCommand.getMenu());
+        defaultPalette.add(PushCommand.getBack());
 
         ctree = new CTree(initialPalette,defaultPalette);
         ctree.startViewer();

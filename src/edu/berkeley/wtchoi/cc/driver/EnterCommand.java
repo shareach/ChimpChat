@@ -16,26 +16,27 @@ public final class EnterCommand extends ICommand {
     private int x;
     private int y;
     private String content;
-    private boolean concatMode = false;
+    private String toEnter;
+    private boolean hasFocus = false;
 
     //All implementation of command should obtain integer identifier from
     private static final Integer tint = IdentifierPool.getFreshInteger();
 
-    public EnterCommand(int x, int y, String content){
+    public EnterCommand(int x, int y, String content, String toEnter, boolean mode){
         this.x = x;
         this.y = y;
         this.content = content;
+        this.toEnter = toEnter;
+        this.hasFocus = mode;
     }
 
-    public EnterCommand(int x, int y, String content, boolean mode){
-        this.x = x;
-        this.y = y;
-        this.content = content;
-        this.concatMode = mode;
-    }
+    public boolean sendCommand(DriverImp driver){
+        if(!hasFocus){
+            driver.mDevice.touch(x,y,TouchPressType.DOWN_AND_UP);
+            super.sendCommandAck(driver.channel);
+        }
 
-    public void sendCommand(DriverImp driver){
-        char[] contents = content.toCharArray();
+        char[] contents = toEnter.toCharArray();
         String temp = "";
         for(char c: contents){
             if(c == ' '){
@@ -45,8 +46,7 @@ public final class EnterCommand extends ICommand {
             driver.mDevice.type(String.valueOf(c));
         }
         super.sendCommandAck(driver.channel);
-        //driver.mDevice.type(content);
-        //super.sendCommandAck(driver.channel);
+        return true;
     }
 
     public Integer typeint(){
@@ -60,16 +60,18 @@ public final class EnterCommand extends ICommand {
             f = (new Integer(y)).compareTo(cmd.y);
             if(f == 0){
                 //return content.compareTo(cmd.content);
-                if(concatMode == cmd.concatMode) return 0;
-                if(concatMode && !cmd.concatMode) return 1;
-                else return -1;
+                boolean f1 = content.equals("");
+                boolean f2 = cmd.content.equals("");
+                if(f1 == f2) return 0;
+                if(f1 && !f2) return 1;
+                else return 0;
             }
         }
         return f;
     }
 
     public String toString(){
-        if(concatMode) return "TE("+x+","+y+")";
+        if(!content.equals("")) return "TE("+x+","+y+")";
         return "E("+x+","+y+")";
     }
 

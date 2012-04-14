@@ -17,7 +17,8 @@ import edu.berkeley.wtchoi.cc.util.TcpChannel;
 public final class PushCommand extends ICommand {
 
     public enum Type{
-        MENU;
+        MENU{ public String toString(){return "MENU";}},
+        BACK{ public String toString(){return "BACK";}};
     }
 
     //All implementation of command should obtain integer identifier from
@@ -25,16 +26,17 @@ public final class PushCommand extends ICommand {
 
     private Type type;
 
-    public void sendCommand(DriverImp driver){
+    public boolean sendCommand(DriverImp driver){
         switch(this.type){
             case MENU:
                 //Code fragment for push MENU button
                 driver.mDevice.press(PhysicalButton.MENU, TouchPressType.DOWN_AND_UP);
                 break;
-            default:
-                return;
+            case BACK:
+                driver.mDevice.press(PhysicalButton.BACK, TouchPressType.DOWN_AND_UP);
+                break;
         }
-        super.sendCommandAck(driver.channel);
+        return super.sendCommandAck(driver.channel);
     }
 
     private PushCommand(Type t){
@@ -43,6 +45,10 @@ public final class PushCommand extends ICommand {
 
     public static PushCommand getMenu(){
         return new PushCommand(Type.MENU);
+    }
+
+    public static PushCommand getBack(){
+        return new PushCommand(Type.BACK);
     }
     
     protected int compareSameType(ICommand target){
@@ -55,6 +61,6 @@ public final class PushCommand extends ICommand {
     }
 
     public String toString(){
-        return "MENU";
+        return type.toString();
     }
 }

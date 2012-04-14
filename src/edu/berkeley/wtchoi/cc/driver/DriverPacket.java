@@ -48,6 +48,10 @@ public class DriverPacket implements Serializable{
         return new DriverPacket(Type.AckStable);
     }
 
+    public static DriverPacket getAckStop(){
+        return new DriverPacket(Type.AckStop);
+    }
+
     public static DriverPacket getSetOptions(int[] opt){
         return new DriverPacket(Type.SetOptions, opt);
     }
@@ -163,23 +167,10 @@ public class DriverPacket implements Serializable{
         },
 
         // DriverPacket from Application
-        AckStable{
-            public String toString(){
-                return "AckStack";
-            }
-        },
-
-        ViewInfo{
-            public String toString(){
-                return "ViewInfo";
-            }
-        },
-
-        TI{
-            public String toString(){
-                return "TransitionInfo";
-            }
-        };
+        AckStable   { public String toString(){ return "AckStack"; }},
+        ViewInfo    { public String toString(){ return "ViewInfo"; }},
+        TI          { public String toString(){ return "TransitionInfo"; }},
+        AckStop     { public String toString(){ return "AckStop"; }};
     }
 
 }

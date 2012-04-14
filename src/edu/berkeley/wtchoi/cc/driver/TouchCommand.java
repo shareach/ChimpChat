@@ -16,7 +16,6 @@ import edu.berkeley.wtchoi.cc.util.TcpChannel;
 public final class TouchCommand extends ICommand {//TODO
     private Integer x;
     private Integer y;
-    private boolean isEditableAndHasText = false;
 
     //All implementation of command should obtain integer identifier from
     private static final Integer tint = IdentifierPool.getFreshInteger();
@@ -26,10 +25,7 @@ public final class TouchCommand extends ICommand {//TODO
 
         int c1 = x.compareTo(cmd.x);
         if (c1 == 0) {
-            if(isEditableAndHasText == cmd.isEditableAndHasText)
-                return y.compareTo(cmd.y);
-            if(isEditableAndHasText && !cmd.isEditableAndHasText) return 1;
-            else return -1;
+            return y.compareTo(cmd.y);
         }
         return c1;
     }
@@ -39,15 +35,9 @@ public final class TouchCommand extends ICommand {//TODO
         this.y = y;
     }
 
-    public TouchCommand(Integer x, Integer y, boolean mode) {
-        this.x = x;
-        this.y = y;
-        isEditableAndHasText = mode;
-    }
-
-    public void sendCommand(DriverImp driver) {
+    public boolean sendCommand(DriverImp driver) {
         driver.mDevice.touch(x, y, TouchPressType.DOWN_AND_UP);
-        super.sendCommandAck(driver.channel);
+        return super.sendCommandAck(driver.channel);
     }
 
     public Integer getX() {
@@ -63,8 +53,6 @@ public final class TouchCommand extends ICommand {//TODO
     }
     
     public String toString(){
-        if(isEditableAndHasText)
-            return ("T(" + x + "," + y + ")");
         return ("(" + x + "," + y + ")");
     }
 }

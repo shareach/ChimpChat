@@ -11,7 +11,7 @@ import edu.berkeley.wtchoi.cc.util.TcpChannel;
  * To change this template use File | Settings | File Templates.
  */
 public abstract class ICommand implements Comparable<ICommand>{
-    public abstract void sendCommand(DriverImp driver) throws RuntimeException;
+    public abstract boolean sendCommand(DriverImp driver) throws RuntimeException;
 
     public abstract Integer typeint();
     //This is for fast comparison between different implementation of ICommand interface
@@ -21,23 +21,31 @@ public abstract class ICommand implements Comparable<ICommand>{
     //private static final Integer tint = IdentifierPool.getFreshInteger();
 
     //Please call this function, after sending chimpchat command
-    protected void sendCommandAck(TcpChannel<DriverPacket> channel){
+    protected boolean sendCommandAck(TcpChannel<DriverPacket> channel){
         //1. Send command acknowledgement to App Supervisor
         DriverPacket ack = DriverPacket.getAckCommand();
         channel.sendPacket(ack);
 
         //2. Minor sleep
-        try{
-            Thread.sleep(500);
-        }
-        catch(Exception e){ }
+        miniSleep();
 
         //3. Wait for App Supervisor response
         DriverPacket receivingPacket;
         receivingPacket = channel.receivePacket();
+        if (receivingPacket.getType() == DriverPacket.Type.AckStop){
+            return false;
+        }
         if (receivingPacket.getType() != DriverPacket.Type.AckStable) {
             throw new RuntimeException("Application Execution is not guided correctly");
         }
+        return true;
+    }
+
+    protected void miniSleep(){
+        try{
+            Thread.sleep(500);
+        }
+        catch(Exception e){ }
     }
 
     public int compareTo(ICommand target){

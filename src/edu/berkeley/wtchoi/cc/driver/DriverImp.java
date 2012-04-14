@@ -25,6 +25,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
     TcpChannel<DriverPacket> channel;
 
     private boolean justRestarted = false;
+    private boolean justStoped = false;
     private boolean isCurrentViewOld = true;
     private ViewInfo currentView;
 
@@ -57,14 +58,17 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
 
 
     public boolean initiateApp() {
+        isCurrentViewOld = true;
+
         ////1. Initiate Communication TcpChannel (Asynchronous)
         //channel = TcpChannel.getServerSide(13338);
         //channel.connectAsynchronous();
         channel = TcpChannel.getClientSide("127.0.0.1",13338);
         channel.setTryCount(5);
         channel.setTryInterval(1000);
+        channel.setPreSleep(1000);
         channel.setPostSleep(0);
-        channel.setPreSleep(3000);
+
 
         //2. Initiate ChimpChat connection
         String runComponent = option.getRunComponent();
@@ -116,7 +120,9 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
     public boolean restartApp() {
         if(justRestarted) return true;
         isCurrentViewOld = false;
-        channel.sendPacket(DriverPacket.getReset());
+
+        if(!justStoped)
+            channel.sendPacket(DriverPacket.getReset());
 
         return initiateApp();
     }
@@ -167,7 +173,8 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
     public boolean go(List<? extends ICommand> clist) {
         //1. Send commands
         for (ICommand c : clist) {
-            if (!go(c)) return false;
+            go(c);
+            if(justStoped) return false;
         }
         return true;
     }
@@ -176,8 +183,8 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
 
     public boolean go(ICommand c) {
         justRestarted = false;
-        c.sendCommand(this);
+        justStoped = !c.sendCommand(this);
         isCurrentViewOld = true;
-        return true;
+        return !justStoped;
     }
 }

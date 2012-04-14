@@ -14,12 +14,21 @@ public class Observation implements Comparable<Observation>{
     private CSet<ICommand> palette;
     private TransitionInfo augmentation;
 
+    private static Observation stopObservation = new Observation(new CSet<ICommand>(),new TransitionInfo());
+
     public Observation(CSet<ICommand> k, TransitionInfo a){
         palette = k;
         augmentation = a;
     }
 
     public int compareTo(Observation o){
+        boolean f1 = (this == stopObservation);
+        boolean f2 = (o == stopObservation);
+
+        if(f1 && f2) return 0;
+        if(f1 && !f2) return 1;
+        if(f2 && !f1) return -1;
+
         return this.palette.compareTo(o.palette);
     }
 
@@ -28,5 +37,13 @@ public class Observation implements Comparable<Observation>{
 
     public String toString(){
         return palette.toString()+augmentation.didNothing();
+    }
+
+    public static Observation getStopObservation(){
+        return stopObservation;
+    }
+
+    public boolean isStopObservation(){
+        return this == stopObservation;
     }
 }

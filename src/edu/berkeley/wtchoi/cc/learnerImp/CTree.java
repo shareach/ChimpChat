@@ -26,8 +26,9 @@ class CTree{
 
     class Node implements Comparable<Node> {
 
-        protected Integer id;
+        Integer id;
         private CSet<ICommand> palette;
+        private boolean isStopNode = false;
 
         Node parent;
         ICommand inputFromParent;
@@ -98,6 +99,7 @@ class CTree{
         for(ICommand i : ilst){
             o = oiter.next();
             Pair<Node,Observation> child = cur.children.get(i);
+            if(o.isStopObservation()) child.fst.isStopNode = true;
             if(child.snd == null){
                 child.setSecond(o);
                 child.fst.palette = o.getPalette();
@@ -105,6 +107,7 @@ class CTree{
                 System.out.println("TI!:" + o.getAugmentation().didNothing());
                 extend(child.fst);
             }
+            if(o.isStopObservation()) break;
             cur = child.fst;
         }
     }
@@ -117,6 +120,8 @@ class CTree{
 
     public void extend(Node target){
         leafSet.remove(target);
+        if(target.isStopNode) return;
+
         for(ICommand i : target.palette){
             Node temp = new Node(target, i);
             target.children.put(i, new Pair<Node,Observation>(temp,null));
@@ -195,14 +200,15 @@ class CTree{
     }
 
     private void drawTree(Node n, GraphViz gv){
-        Integer id1 = n.id;
+        String id1 = String.valueOf(n.id);
         if(!n.children.isEmpty())
-            gv.addln(id1+" [style=bold];");
+            gv.addln(id1+" [style=bold, color=gray];");
+            gv.addln("S [style=bold];");
 
         for(ICommand i: n.children.keySet()){
 
             Node child =n.children.get(i).fst;
-            Integer id2 = child.id;
+            String id2 = child.isStopNode ? "S" : String.valueOf(child.id);
             if(leafSet.contains(child)){
                 gv.addln(id1 + "->" + id2 + "[label=\""+ i +"\"];");
             }
