@@ -12,7 +12,7 @@ import java.util.List;
  * Time: 4:29 AM
  * To change this template use File | Settings | File Templates.
  */
-public interface IDriver {
+public interface IDriver<TransitionInfo> {
     public boolean connectToDevice();
 
     public boolean initiateApp();
@@ -26,6 +26,8 @@ public interface IDriver {
     public boolean go(ICommand input);
 
     public ViewInfo getCurrentView();
+
+    public TransitionInfo getCurrentTransitionInfo();
 
     public void shutdown();
 }

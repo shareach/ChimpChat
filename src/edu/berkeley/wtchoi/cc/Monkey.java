@@ -6,11 +6,13 @@ import edu.berkeley.wtchoi.cc.driver.DriverImp;
 import edu.berkeley.wtchoi.cc.driver.DriverImpOption;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.IDriver;
+import edu.berkeley.wtchoi.cc.learnerImp.LearnerFoo;
+import edu.berkeley.wtchoi.cc.learnerImp.Observation;
+import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
 import edu.berkeley.wtchoi.cc.learning.*;
 import edu.berkeley.wtchoi.cc.util.Logger;
 import edu.berkeley.wtchoi.cc.util.LoggerImp;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-import edu.berkeley.wtchoi.cc.learning.Observation;
 //import com.android.chimpchat.core.IChimpView;
 
 
@@ -27,15 +29,16 @@ public class Monkey {
         DriverImpOption option = new DriverImpOption();
         option.fillFromEnvironmentVariables();
         
-        IDriver controller = new DriverImp(option);
-        MonkeyTeacher teacher = new MonkeyTeacher(controller);
+        IDriver<TransitionInfo> controller = new DriverImp<TransitionInfo>(option);
+        TeacherImp teacher = new TeacherImp(controller);
 
         if(!teacher.init()) throw new RuntimeException("Cannot initialize teacher");
 
-        LearnerFoo foo = new LearnerFoo(teacher);
-        Learner<ICommand, ViewState, AppModel> learner = foo;// = new PaletteLearnerImp(teacher);
+        CSet<ICommand> initialPalette = controller.getCurrentView().getRepresentativePoints(TouchFactory.getInstance());
+        LearnerFoo foo = new LearnerFoo(initialPalette);
+        Learner<ICommand, Observation, AppModel> learner = foo;// = new PaletteLearnerImp(teacher);
 
-        Learning<ICommand, ViewState, AppModel> learning = new Learning<ICommand, ViewState, AppModel>(learner, teacher);
+        Learning<ICommand, Observation, AppModel> learning = new Learning<ICommand, Observation, AppModel>(learner, teacher);
         learning.run();
 
         Model m = learner.getModel();
@@ -43,8 +46,12 @@ public class Monkey {
     }
 }
 
+
+
 //View State Information. We are going to use it as output character
-class ViewState implements Observation<ViewState>{
+/*
+class ViewState implements Comparable<ViewState>{
+
     private CSet<ICommand> palette;
 
     public int compareTo(ViewState target){
@@ -59,10 +66,5 @@ class ViewState implements Observation<ViewState>{
         return palette.toString();
     }
 }
-
-class AppModel implements Model<ICommand, ViewState> { //TODO
-
-    public void printModel(Writer w) {
-    }
-}
+*/
 

@@ -15,7 +15,7 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 
-public class DriverImp implements IDriver {
+public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
    
     private DriverImpOption option;
         
@@ -152,6 +152,18 @@ public class DriverImp implements IDriver {
 
     }
 
+    public TransitionInfo getCurrentTransitionInfo(){
+        TransitionInfo ti;
+
+        DriverPacket sPacket = DriverPacket.getRequestTI();
+        channel.sendPacket(sPacket);
+
+        DriverPacket rPacket = channel.receivePacket();
+        ti = rPacket.getTI();
+
+        return ti;
+    }
+
     public boolean go(List<? extends ICommand> clist) {
         //1. Send commands
         for (ICommand c : clist) {
@@ -159,6 +171,8 @@ public class DriverImp implements IDriver {
         }
         return true;
     }
+
+
 
     public boolean go(ICommand c) {
         justRestarted = false;

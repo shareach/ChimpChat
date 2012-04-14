@@ -36,6 +36,10 @@ public class DriverPacket implements Serializable{
         return new DriverPacket(Type.RequestView);
     }
 
+    public static DriverPacket getRequestTI(){
+        return new DriverPacket(Type.RequestTI);
+    }
+
     public static DriverPacket getAckCommand() {
         return new DriverPacket(Type.AckCommand);
     }
@@ -50,6 +54,10 @@ public class DriverPacket implements Serializable{
 
     public static DriverPacket getViewInfo(ViewInfo mv){
         return new DriverPacket(Type.ViewInfo, mv);
+    }
+
+    public static <T> DriverPacket getTransitionInfo(T ti){
+        return new DriverPacket(Type.TI, ti);
     }
 
     public static DriverPacket getEnterEditText(int vid, String content){
@@ -84,6 +92,13 @@ public class DriverPacket implements Serializable{
     public int getViewId(){
         if(this.getType() == Type.EnterEditText){
             return (Integer) ((Object[]) piggyback)[0];
+        }
+        throw new RuntimeException("Wrong DriverPacket:"+this.toString());
+    }
+
+    public <T> T getTI(){
+        if(this.getType() == Type.TI){
+            return (T) piggyback;
         }
         throw new RuntimeException("Wrong DriverPacket:"+this.toString());
     }
@@ -123,6 +138,12 @@ public class DriverPacket implements Serializable{
             }
         },
 
+        RequestTI{
+            public String toString(){
+                return "RequestTI";
+            }
+        },
+
         SetOptions{
             public String toString(){
                 return "SetOptions";
@@ -151,6 +172,12 @@ public class DriverPacket implements Serializable{
         ViewInfo{
             public String toString(){
                 return "ViewInfo";
+            }
+        },
+
+        TI{
+            public String toString(){
+                return "TransitionInfo";
             }
         };
     }

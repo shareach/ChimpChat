@@ -9,6 +9,6 @@ import java.io.Writer;
  * Time: 8:01 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface Model<I extends Comparable<I>, O extends Observation<O>> {
+public interface Model<I extends Comparable<I>, O extends Comparable<O>> {
     public void printModel(Writer w);
 }

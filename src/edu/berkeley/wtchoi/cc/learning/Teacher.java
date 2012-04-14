@@ -10,7 +10,7 @@ import edu.berkeley.wtchoi.cc.util.datatype.Pair;
  * Time: 3:58 PM
  * To change this template use File | Settings | File Templates.
  */
-public interface Teacher<I extends Comparable<I>, O extends Observation<O>, M extends Model<I, O>> {
+public interface Teacher<I extends Comparable<I>, O extends Comparable<O>, M extends Model<I, O>> {
     // Used to implement equivalence query.
     // Should return null if model and target are equivalent
     public Pair<CList<I>, CList<O>> getCounterExample(M model);
