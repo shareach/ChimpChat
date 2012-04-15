@@ -14,8 +14,6 @@ import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.CVector;
 import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
-import java.util.TreeMap;
-
 
 /**
  * Created by IntelliJ IDEA.

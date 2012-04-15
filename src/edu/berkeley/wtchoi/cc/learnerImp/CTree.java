@@ -3,6 +3,8 @@ package edu.berkeley.wtchoi.cc.learnerImp;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.util.GraphViz;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
+import edu.berkeley.wtchoi.cc.util.datatype.CVector;
+import edu.berkeley.wtchoi.cc.util.datatype.CList;
 import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
 import javax.imageio.ImageIO;
@@ -136,9 +138,12 @@ class CTree{
         return leafSet;
     }
 
-    public void tryPruning(List<ICommand> ilst){
+    public CList<ICommand> tryPruning(List<ICommand> ilst){
         Node target = getNode(ilst);
-        if(!target.tiFromParent.didNothing()) return;
+
+        CList<ICommand> rlst = new CVector<ICommand>();
+        if(!target.tiFromParent.didNothing())
+            return null;
 
         CSet<Node> candidates = new CSet<Node>();
         candidates.add(target.parent);
@@ -149,7 +154,8 @@ class CTree{
             Node candidate = candidates.pollFirst();
             if(candidate.palette.compareTo(target.palette) == 0){
                 doMerge(target, candidate);
-                return;
+                buildInputPath(candidate,rlst);
+                return rlst;
             }
 
             if(candidate.parent != null && candidate.tiFromParent.didNothing()){
@@ -166,7 +172,8 @@ class CTree{
             Node candidate = candidates2.pollFirst();
             if(candidate.palette.compareTo(target.palette) == 0){
                 doMerge(target, candidate);
-                return;
+                buildInputPath(candidate, rlst);
+                return rlst;
             }
 
             for(Pair<Node,Observation> ch: candidate.children.values()){
@@ -175,6 +182,7 @@ class CTree{
                     candidates2.add(ch.fst);
             }
         }
+        return null;
     }
 
     private void doMerge(Node target, Node to){
@@ -202,9 +210,9 @@ class CTree{
     private void drawTree(Node n, GraphViz gv){
         String id1 = String.valueOf(n.id);
         if(!n.children.isEmpty())
-            gv.addln(id1+" [style=bold, color=gray];");
-        if(n.isStopNode)
-            gv.addln(id1+" [style=bold];");
+            gv.addln(id1+" [style = bold, shape = circle];");
+        else if (!n.isStopNode)
+            gv.addln(id1+" [shape = point, color=gray];");
 
 
         for(ICommand i: n.children.keySet()){
@@ -212,17 +220,21 @@ class CTree{
             Node child =n.children.get(i).fst;
             String id2 = String.valueOf(child.id);
             if(leafSet.contains(child)){
-                gv.addln(id1 + "->" + id2 + "[label=\""+ i +"\"];");
+                gv.addln(id1 + "->" + id2 + "[color=gray, fontsize=10, label=\""+ i +"\"];");
             }
             else{
                 if(child instanceof MergeNode){
                     MergeNode node = (MergeNode) child;
-                    gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
+                    if(child.tiFromParent.didNothing())
+                        gv.addln(id1 + "->" + node.mergeTo.id + "[color = blue, label=\""+ i+"\"];");
+                    else
+                        gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
                     continue;
                 }
                 else{
+                    if(child.isStopNode) continue;
                     if(child.tiFromParent.didNothing()){
-                        gv.addln(id1 + "->" + id2 + "[style=bold, color=gray, label=\""+ i+"\"];");
+                            gv.addln(id1 + "->" + id2 + "[style=bold, color=blue, label=\""+ i+"\"];");
                     }
                     else{
                         gv.addln(id1 + "->" + id2 + "[style=bold, label=\""+ i+"\"];");
@@ -265,8 +277,19 @@ class CTree{
 
         @Override
         public void paintComponent(Graphics g) {
-            g.drawImage(image, 0, 0, null); // see javadoc for more info on the parameters
-
+            int iw = image.getWidth();
+            int ih = image.getHeight();
+            int maxw = 800;
+            int maxh = 800;
+            if(iw>maxw){
+                ih = (int)(((double)maxw / (double)iw) * (double)ih);
+                iw = maxw;
+            }
+            if(ih > maxh){
+                iw = (int)(((double)maxh / (double)ih) * (double)iw);
+                ih = maxh;
+            }
+            g.drawImage(image, 0, 0, iw, ih, null); // see javadoc for more info on the parameters
         }
 
     }

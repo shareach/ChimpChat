@@ -82,7 +82,7 @@ public class TcpChannel<Packet> {
     private void connectToServer() {
         //Log.d("wtchoi", "connectToServer:" + ip);
         try {
-            Thread.sleep(preSleep);
+            //Thread.sleep(preSleep);
 
             int i;
             for(i = 0 ; i < tryCount ; i++){
@@ -90,6 +90,19 @@ public class TcpChannel<Packet> {
                     System.out.println(Integer.toString(i+1)+ "trial.");
                     socket = new Socket(ip,port);
                     Logger.log("Connected!");
+
+                    //Sleep a while to wait device to be ready
+                    //Thread.sleep(postSleep);
+
+                    //NOTE! the order of opening streams is important!
+                    OutputStream os = socket.getOutputStream();
+                    InputStream is = socket.getInputStream();
+
+                    oos = new ObjectOutputStream(os);
+                    oos.flush();
+                    os.flush();
+
+                    ois = new ObjectInputStream(is);
                 }
                 catch(UnknownHostException e){
                     e.printStackTrace();
@@ -102,19 +115,6 @@ public class TcpChannel<Packet> {
                 break;
             }
             if(i == tryCount) throw new RuntimeException("Connection timeout!");
-
-            //Sleep a while to wait device to be ready
-            Thread.sleep(postSleep);
-
-            //NOTE! the order of opening streams is important!
-            OutputStream os = socket.getOutputStream();
-            InputStream is = socket.getInputStream();
-
-            oos = new ObjectOutputStream(os);
-            oos.flush();
-            os.flush();
-
-            ois = new ObjectInputStream(is);
 
         } catch (Exception e) {
             e.printStackTrace();

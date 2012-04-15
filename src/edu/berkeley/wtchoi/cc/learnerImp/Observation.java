@@ -46,4 +46,11 @@ public class Observation implements Comparable<Observation>{
     public boolean isStopObservation(){
         return this == stopObservation;
     }
+
+    public boolean equalsTo(Observation target){
+        if(this.compareTo(target) == 0){
+            return augmentation.equalsTo(target.augmentation);
+        }
+        return false;
+    }
 }
