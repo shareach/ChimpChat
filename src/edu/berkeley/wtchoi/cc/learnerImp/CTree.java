@@ -23,10 +23,10 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 class CTree{
-    private static Integer nidset = 0;
-    private CSet<ICommand> defaultPalette;
+    protected static Integer nidset = 0;
+    protected CSet<ICommand> defaultPalette;
 
-    class Node implements Comparable<Node> {
+    private class Node implements Comparable<Node> {
 
         Integer id;
         private CSet<ICommand> palette;
@@ -60,20 +60,22 @@ class CTree{
         }
     }
 
-    class MergeNode extends Node{
+    private class MergeNode extends Node{
         private Node mergeTo;
+        private boolean internal;
 
-        public MergeNode(Node target, Node to){
+        public MergeNode(Node target, Node to, boolean internal){
             parent = target.parent;
             inputFromParent = target.inputFromParent;
             tiFromParent = target.tiFromParent;
             id = target.id;
             mergeTo = to;
+            this.internal = internal;
 
         }
     }
 
-    private Node root;
+    private  Node root;
     private Set<Node> leafSet;
 
     public CTree(CSet<ICommand> initialPalette, CSet<ICommand> defaultPalette){
@@ -84,7 +86,7 @@ class CTree{
         extend(root);
     }
 
-    public Node getNode(List<ICommand> ilst){
+    private Node getNode(List<ICommand> ilst){
         Node cur = root;
         for(ICommand i: ilst){
             if(!cur.children.containsKey(i)) return null;
@@ -114,13 +116,13 @@ class CTree{
         }
     }
 
-    public void buildInputPath(Node target, List<ICommand> lst){
+    private void buildInputPath(Node target, List<ICommand> lst){
         if(target == root) return;
         buildInputPath(target.parent, lst);
         lst.add(target.inputFromParent);
     }
 
-    public void extend(Node target){
+    private void extend(Node target){
         leafSet.remove(target);
         if(target.isStopNode) return;
 
@@ -134,7 +136,7 @@ class CTree{
         }
     }
 
-    public final Set<Node> getLeafSet(){
+    private final Set<Node> getLeafSet(){
         return leafSet;
     }
 
@@ -153,8 +155,8 @@ class CTree{
         while(!candidates.isEmpty()){
             Node candidate = candidates.pollFirst();
             if(candidate.palette.compareTo(target.palette) == 0){
-                doMerge(target, candidate);
-                buildInputPath(candidate,rlst);
+                doMerge(target, candidate,true);
+                buildInputPath(candidate, rlst);
                 return rlst;
             }
 
@@ -171,7 +173,7 @@ class CTree{
         while(!candidates2.isEmpty()){
             Node candidate = candidates2.pollFirst();
             if(candidate.palette.compareTo(target.palette) == 0){
-                doMerge(target, candidate);
+                doMerge(target, candidate, true);
                 buildInputPath(candidate, rlst);
                 return rlst;
             }
@@ -185,18 +187,150 @@ class CTree{
         return null;
     }
 
-    private void doMerge(Node target, Node to){
-        Node ghost = new MergeNode(target,to);
+    //merge for internal purpose
+    private void doMerge(Node target, Node to, boolean internal){
+        Node ghost = new MergeNode(target,to, internal);
         target.parent.children.get(target.inputFromParent).setFirst(ghost);
         remove(target);
     }
 
     private void remove(Node n){
+        if(n instanceof MergeNode) return;
         leafSet.remove(n);
         for(Pair<Node,Observation> ch : n.children.values())
             remove(ch.getFirst());
     }
 
+
+    //Interface for out side
+    //----------------------
+    class State implements Comparable<State>{
+        Node node;
+        CList<ICommand> input;
+
+        CTree ctree;
+
+        State(Node n,CTree t){node = n; input = new CVector<ICommand>(); ctree=t; this.normalize();}
+        State(CList<ICommand> i, CTree t){node = root; input = i; ctree = t; this.normalize();}
+        State(Node n, CList<ICommand> i, CTree t){ node = n; input = i; ctree = t; this.normalize();}
+
+        public int compareTo(State st){  //TODO
+            this.normalize();
+            st.normalize();
+
+            int f = this.node.compareTo(st.node);
+            if(f != 0) return f;
+
+            return this.input.compareTo(st.input);
+        }
+
+        void normalize(){
+            if(input.isEmpty()) return;
+
+            Node n = node;
+            Iterator<ICommand> iter = input.iterator();
+            while(iter.hasNext() && !leafSet.contains(n)){
+                n = n.children.get(iter.next()).fst;
+                if(n instanceof MergeNode){
+                    n = ((MergeNode)n).mergeTo;
+                }
+            }
+            CList<ICommand> tmp = new CVector<ICommand>();
+            while(iter.hasNext()) tmp.add(iter.next());
+
+            this.node = n;
+            this.input = tmp;
+        }
+
+        public void mergeTo(State target){
+            ctree.doMerge(node, target.node, false);
+        }
+
+        public CList<ICommand> getInput(){
+            CList<ICommand> temp = new CVector<ICommand>();
+            buildInputPath(this.node,temp);
+            temp.addAll((this.input));
+            return temp;
+        }
+
+        public boolean isStopNode(){
+            return node.isStopNode;
+        }
+
+        public String toString(){
+            this.normalize();
+            return String.valueOf(node.id);
+        }
+    }
+
+    //State generators
+    public State getInitState(){
+        return new State(root,this);
+    }
+
+    public State getState(CList<ICommand> i){
+        return new State(i,this);
+    }
+
+    public State getState(State s, CList<ICommand> input){
+        CVector<ICommand> tmp = new CVector<ICommand>();
+        tmp.addAll(s.input);
+        tmp.addAll(input);
+        return new State(s.node,tmp,this);
+    }
+
+    public State getState(State s, ICommand cmd){
+        CVector<ICommand> input = new CVector<ICommand>();
+        input.add(cmd);
+        return getState(s,input);
+    }
+
+    //Utility Functions
+    public CSet<ICommand> getPalette(State state){
+        state.normalize();
+        if(state.input.isEmpty()) return state.node.palette;
+        return null;
+    }
+
+    public Observation getTransition(State state, ICommand cmd){
+        state.normalize();
+        Node n = state.node;
+
+        if(leafSet.contains(n)) return null;
+        if(!n.children.containsKey(cmd)) return null;
+        return n.children.get(cmd).snd;
+
+    }
+
+    public CList<Observation> getTransition(State state, CList<ICommand> input){
+        state.normalize();
+        if(leafSet.contains(state.node) && !input.isEmpty()) return null;
+
+        Node cur = state.node;
+        CList<Observation> output = new CVector<Observation>();
+        for(ICommand i: input){
+            if(!cur.children.containsKey(i)) return null;
+            output.add(cur.children.get(i).snd);
+            cur = cur.children.get(i).fst;
+        }
+        return output;
+    }
+
+    public boolean checkPossible(State state, CList<ICommand> input){
+        state.normalize();
+        if(leafSet.contains(state.node) && !input.isEmpty()) return false;
+
+        Node cur = state.node;
+        for(ICommand i: input){
+            if(!cur.children.containsKey(i)) return false;
+            cur = cur.children.get(i).fst;
+        }
+        return true;
+    }
+
+
+    //For Tree Visualization Part
+    //----------------------------
     public void drawTree(String path){
         GraphViz gv = new GraphViz();
         gv.addln(gv.start_graph());
@@ -207,114 +341,63 @@ class CTree{
         gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), "gif"), out);
     }
 
-    private void drawTree(Node n, GraphViz gv){
+    protected void drawNode(Node n, GraphViz gv){
         String id1 = String.valueOf(n.id);
         if(!n.children.isEmpty())
             gv.addln(id1+" [style = bold, shape = circle];");
         else if (!n.isStopNode)
             gv.addln(id1+" [shape = point, color=gray];");
+    }
 
-
-        for(ICommand i: n.children.keySet()){
-
-            Node child =n.children.get(i).fst;
-            String id2 = String.valueOf(child.id);
-            if(leafSet.contains(child)){
-                gv.addln(id1 + "->" + id2 + "[color=gray, fontsize=10, label=\""+ i +"\"];");
+    protected void drawEdgeToChild(Node n, ICommand i, Node child, GraphViz gv){
+        String id1 = String.valueOf(n.id);
+        String id2 = String.valueOf(child.id);
+        if(leafSet.contains(child)){
+            gv.addln(id1 + "->" + id2 + "[color=gray, fontsize=10, label=\""+ i +"\"];");
+        }
+        else{
+            if(child instanceof MergeNode){
+                MergeNode node = (MergeNode) child;
+                if(!node.internal){
+                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = green, label=\""+ i+"\"];");
+                }
+                else if(child.tiFromParent.didNothing())
+                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = blue, label=\""+ i+"\"];");
+                else
+                    gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
             }
             else{
-                if(child instanceof MergeNode){
-                    MergeNode node = (MergeNode) child;
-                    if(child.tiFromParent.didNothing())
-                        gv.addln(id1 + "->" + node.mergeTo.id + "[color = blue, label=\""+ i+"\"];");
-                    else
-                        gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
-                    continue;
+                if(child.isStopNode) return;
+                if(child.tiFromParent.didNothing()){
+                    gv.addln(id1 + "->" + id2 + "[style=bold, color=blue, label=\""+ i+"\"];");
                 }
                 else{
-                    if(child.isStopNode) continue;
-                    if(child.tiFromParent.didNothing()){
-                            gv.addln(id1 + "->" + id2 + "[style=bold, color=blue, label=\""+ i+"\"];");
-                    }
-                    else{
-                        gv.addln(id1 + "->" + id2 + "[style=bold, label=\""+ i+"\"];");
-                    }
+                    gv.addln(id1 + "->" + id2 + "[style=bold, label=\""+ i+"\"];");
                 }
             }
+        }
+    }
+
+    protected void drawTree(Node n, GraphViz gv){
+        String id1 = String.valueOf(n.id);
+        drawNode(n,gv);
+
+        for(ICommand i: n.children.keySet()){
+            Node child =n.children.get(i).fst;
+            drawEdgeToChild(n,i,child,gv);
+            if(child instanceof MergeNode) continue;
             drawTree(child, gv);
         }
     }
 
-    TreeViewer<ICommand,Observation> viewer;
+    CTreeViewer<ICommand,Observation> viewer;
     public void startViewer(){
-        viewer = new TreeViewer<ICommand, Observation>(this);
+        viewer = new CTreeViewer<ICommand, Observation>(this);
         SwingUtilities.invokeLater(viewer);
     }
 
     public void updateView(){
         if(viewer != null)
             viewer.reload();
-    }
-
-
-    static class ImagePanel extends JPanel{
-
-        private BufferedImage image;
-        private String path;
-
-        public ImagePanel(String path) {
-            this.path = path;
-            reload();
-        }
-
-        public void reload(){
-            try {
-                image = ImageIO.read(new java.io.File(path));
-            } catch (IOException ex) {
-                // handle exception...
-            }
-        }
-
-        @Override
-        public void paintComponent(Graphics g) {
-            int iw = image.getWidth();
-            int ih = image.getHeight();
-            int maxw = 800;
-            int maxh = 800;
-            if(iw>maxw){
-                ih = (int)(((double)maxw / (double)iw) * (double)ih);
-                iw = maxw;
-            }
-            if(ih > maxh){
-                iw = (int)(((double)maxh / (double)ih) * (double)iw);
-                ih = maxh;
-            }
-            g.drawImage(image, 0, 0, iw, ih, null); // see javadoc for more info on the parameters
-        }
-
-    }
-
-    static class TreeViewer<I,Observation> implements Runnable{
-        CTree tree;
-        ImagePanel panel;
-        JFrame frame;
-
-        public TreeViewer(CTree ctree){
-            tree = ctree;
-            frame = new JFrame("TreeView");
-            panel = new ImagePanel("/tmp/out.gif");
-            frame.add(panel);
-        }
-
-        public void run(){
-
-            frame.setVisible(true);
-        }
-
-        public void reload(){
-            tree.drawTree("/tmp/out.gif");
-            panel.reload();
-            frame.repaint();
-        }
     }
 }

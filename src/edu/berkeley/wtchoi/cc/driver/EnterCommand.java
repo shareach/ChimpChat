@@ -64,7 +64,7 @@ public final class EnterCommand extends ICommand {
                 boolean f2 = cmd.content.equals("");
                 if(f1 == f2) return 0;
                 if(f1 && !f2) return 1;
-                else return 0;
+                else return -1;
             }
         }
         return f;
