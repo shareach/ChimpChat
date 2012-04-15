@@ -1,5 +1,6 @@
 package edu.berkeley.wtchoi.cc.learnerImp;
 
+import com.sun.corba.se.spi.servicecontext.CodeSetServiceContext;
 import edu.berkeley.wtchoi.cc.AppModel;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.PushCommand;
@@ -37,6 +38,8 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     //INVARIANT : state in stateToBeTested <==> state has remainedObservations
 
     private State stateUnderTesting;
+    private State targetState;
+    private boolean askedRestartingQuestion;
 
     public TreeLearner(CSet<ICommand> initialPalette) {
         defaultPalette = new CSet<ICommand>();
@@ -54,6 +57,8 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
         frontiersToBeTested = new CSet<State>();
 
         State initState = ctree.getInitState();
+        targetState = initState;
+
         uniqueStates.add(initState);
         uniquesToBeTested.add(initState);
 
@@ -97,31 +102,31 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     }
 
     static int count = 0;
-    public CList<ICommand> getQuestion() {
+    public boolean getQuestion(CList<ICommand> questionVector) {
         System.out.println("learning round : "+ ++count);
-        if(count == 14){
+        if(count == 2){
             count = count;
         }
         //Manaul approach
         //---------------
-        //CVector<ICommand> temp = new CVector<ICommand>();
-        //temp.add(PushCommand.getMenu());
-        //temp.add(new TouchCommand(476,799));
-        //return temp;
+        //questionVector.add(PushCommand.getMenu());
+        //questionVector.add(new TouchCommand(476,799));
+        //return pruneQuestion(questionVector);
+
 
 
         //Pure CTree approach
         //-------------------
         //if(ctree.getLeafSet().isEmpty()) return null;
-        //CVector<ICommand> question = new CVector<ICommand>();
-        //ctree.buildInputPath(ctree.getLeafSet().iterator().next(), question);
-        //return question;
+        //ctree.buildInputPath(ctree.getLeafSet().iterator().next(), questionVector);
+        //return pruneQuestion(questionVector);
+
 
         //L* with CTree approach
         //----------------------
         while(true){
             if(uniquesToBeTested.isEmpty()) break;
-            State state = uniquesToBeTested.first();
+            State state = peakState(uniquesToBeTested);
             CSet<CList<ICommand>> observations = remainedObservations.get(state);
             CList<ICommand> suffix = observations.pollFirst();
             if(!ctree.checkPossible(state, suffix)){
@@ -137,15 +142,14 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
                 remainedObservations.remove(state);
             }
             stateUnderTesting = state;
-            CVector<ICommand> tmp = new CVector<ICommand>();
-            tmp.addAll(state.getInput());
-            tmp.addAll(suffix);
-            return tmp;
+            questionVector.addAll(state.getInput());
+            questionVector.addAll(suffix);
+            return pruneQuestion(questionVector);
         }
 
         while(true){
             if(frontiersToBeTested.isEmpty()) break;
-            State state = frontiersToBeTested.first();
+            State state = peakState(frontiersToBeTested);
             CSet<CList<ICommand>> observations = remainedObservations.get(state);
             CList<ICommand> suffix = observations.pollFirst();
             if(!ctree.checkPossible(state, suffix)){
@@ -163,11 +167,30 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
             }
             stateUnderTesting = state;
             CVector<ICommand> tmp = new CVector<ICommand>();
-            tmp.addAll(state.getInput());
-            tmp.addAll(suffix);
-            return tmp;
+            questionVector.addAll(state.getInput());
+            questionVector.addAll(suffix);
+            return pruneQuestion(questionVector);
         }
-        return null;
+
+        return false;
+    }
+
+    private State peakState(CSet<State> set){
+        if(set.contains(targetState)) return targetState;
+        for(State s: set){
+            if(targetState.isPrefixOf(s)) return s;
+        }
+        return set.first();
+    }
+
+    private boolean pruneQuestion(CList<ICommand> question){
+        if(!targetState.isPrefixOf(question)){
+            askedRestartingQuestion = true;
+            return true;
+        }
+        askedRestartingQuestion = false;
+        targetState.removePrefixFrom(question);
+        return false;
     }
 
     private void closeState(State state){
@@ -228,18 +251,21 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     }
 
     public void learn(CList<ICommand> input, CList<Observation> output) {
-        //Original
-        ctree.addPath(input,output);
-        ctree.updateView();
-        CList<ICommand> equalInput = ctree.tryPruning(input);
+        CList<ICommand> equalInput;
+        State state;
 
-        //Additional
-        State state = ctree.getState(input);
-        //if(equalInput != null){
-        //   frontierStates.remove(state);
-        //    frontiersToBeTested.remove(state);
-        //    remainedObservations.remove(state);
-        //}
+        if(askedRestartingQuestion){
+            ctree.addPath(input,output);
+            equalInput = ctree.tryPruning(input);
+            state = ctree.getState(input);
+        }
+        else{
+            ctree.addPath(targetState, input, output);
+            equalInput = ctree.tryPruning(targetState, input);
+            state = ctree.getState(targetState, input);
+        }
+
+        targetState = state;
 
         State sut = stateUnderTesting;
         if(frontierStates.contains(sut) && !remainedObservations.containsKey(sut))

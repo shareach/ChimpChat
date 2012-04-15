@@ -15,5 +15,5 @@ public interface Teacher<I extends Comparable<I>, O extends Comparable<O>, M ext
     // Should return null if model and target are equivalent
     public Pair<CList<I>, CList<O>> getCounterExample(M model);
 
-    public CList<O> checkMembership(CList<I> input);
+    public CList<O> checkMembership(CList<I> input, boolean requireRestart);
 }

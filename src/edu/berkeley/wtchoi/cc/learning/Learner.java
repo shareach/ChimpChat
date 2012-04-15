@@ -14,7 +14,7 @@ import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 public interface Learner<I extends Comparable<I>, O extends Comparable<O>, M extends Model<I, O>> {
     public boolean learnedHypothesis();
 
-    public CList<I> getQuestion();
+    public boolean getQuestion(CList<I> question);
 
     public void learn(CList<I> i, CList<O> o);
 

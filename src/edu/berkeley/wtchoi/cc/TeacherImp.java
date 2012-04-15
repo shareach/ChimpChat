@@ -38,15 +38,15 @@ public class TeacherImp implements Teacher<ICommand, Observation, AppModel> {
         return null;
     }
 
-    //This implementation only put last palette to palette table.
-    public CList<Observation> checkMembership(CList<ICommand> input) {
+
+    public CList<Observation> checkMembership(CList<ICommand> input, boolean requireRestart) {
         if (input == null) return null;
         if (input.size() == 0) return null;
 
         CVector<Observation> output = new CVector<Observation>(input.size());
         CSet<ICommand> palette = null;
 
-        controller.restartApp();
+        if(requireRestart) controller.restartApp();
         for (ICommand t : input) {
             if (!controller.go(t)){
                 output.add(Observation.getStopObservation());

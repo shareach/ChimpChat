@@ -2,6 +2,7 @@ package edu.berkeley.wtchoi.cc.learning;
 
 
 import edu.berkeley.wtchoi.cc.util.datatype.CList;
+import edu.berkeley.wtchoi.cc.util.datatype.CVector;
 import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
 /**
@@ -22,6 +23,8 @@ public class Learning<I extends Comparable<I>, O extends Comparable<O>, M extend
         teacher = t;
     }
 
+    int resetCount = 0;
+
     public void run() {
         while (true) {
             //1. Do hypothesis generation, if not finished
@@ -32,8 +35,12 @@ public class Learning<I extends Comparable<I>, O extends Comparable<O>, M extend
                 //} catch (Exception e) {
                 //}
 
-                CList<I> question = learner.getQuestion();
-                CList<O> answer = teacher.checkMembership(question);
+                CList<I> question = new CVector<I>();
+                boolean requireReset =  learner.getQuestion(question);
+                resetCount  = requireReset?resetCount+1:resetCount;
+                System.out.println("Number of Reset:"+resetCount);
+                CList<O> answer = teacher.checkMembership(question, requireReset);
+
                 learner.learn(question, answer);
                 System.out.println("----------");
                 System.out.println(question);

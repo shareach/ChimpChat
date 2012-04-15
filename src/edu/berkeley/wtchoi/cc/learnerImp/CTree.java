@@ -87,7 +87,11 @@ class CTree{
     }
 
     private Node getNode(List<ICommand> ilst){
-        Node cur = root;
+        return getNode(root,ilst);
+    }
+
+    private Node getNode(Node startingNode, List<ICommand> ilst){
+        Node cur = startingNode;
         for(ICommand i: ilst){
             if(!cur.children.containsKey(i)) return null;
             cur = cur.children.get(i).fst;
@@ -96,7 +100,15 @@ class CTree{
     }
 
     public void addPath(List<ICommand> ilst, List<Observation> olst){
-        Node cur = root;
+        addPathImp(root, ilst, olst);
+    }
+
+    public void addPath(State startingState, List<ICommand> ilst, List<Observation> olst){
+        addPathImp(startingState.node, ilst, olst);
+    }
+
+    private void addPathImp(Node startingNode, List<ICommand> ilst, List<Observation> olst){
+        Node cur = startingNode;
         Iterator<Observation> oiter = olst.iterator();
         Observation o;
 
@@ -141,8 +153,14 @@ class CTree{
     }
 
     public CList<ICommand> tryPruning(List<ICommand> ilst){
-        Node target = getNode(ilst);
+        return tryPruningImp(getNode(ilst));
+    }
 
+    public CList<ICommand> tryPruning(State startingState, List<ICommand> ilst){
+        return tryPruningImp(getNode(startingState.node, ilst));
+    }
+
+    private CList<ICommand> tryPruningImp(Node target){
         CList<ICommand> rlst = new CVector<ICommand>();
         if(!target.tiFromParent.didNothing())
             return null;
@@ -260,6 +278,55 @@ class CTree{
         public String toString(){
             this.normalize();
             return String.valueOf(node.id);
+        }
+
+        public boolean isPrefixOf(CList<ICommand> input){
+            Iterator<ICommand> iter = input.iterator();
+
+            Node cur = root;
+            Node target = this.node;
+            while(iter.hasNext()){
+                if(cur.compareTo(target) == 0) return true;
+
+                ICommand i = iter.next();
+                if(!cur.children.containsKey(i)) break;
+                cur = cur.children.get(i).fst;
+            }
+            return false;
+        }
+
+        public boolean isPrefixOf(State target){
+            Node cur = target.node;
+            while(cur.parent != null){
+                if(cur.id == this.node.id) return true;
+                cur = cur.parent;
+            }
+            return false;
+        }
+
+        public void removePrefixFrom(CList<ICommand> input){
+            Iterator<ICommand> iter = input.iterator();
+            CVector<ICommand> temp = new CVector<ICommand>();
+
+            Node cur = root;
+            Node target = this.node;
+            while(iter.hasNext()){
+                if(cur.compareTo(target) == 0) break;
+
+                ICommand i = iter.next();
+                if(!cur.children.containsKey(i)) return;
+                cur = cur.children.get(i).fst;
+            }
+            if(!iter.hasNext()) return;
+
+            while(iter.hasNext()){
+                ICommand i = iter.next();
+                temp.add(i);
+                cur = cur.children.get(i).fst;
+            }
+
+            input.clear();
+            input.addAll(temp);
         }
     }
 
