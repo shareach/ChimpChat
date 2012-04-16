@@ -89,7 +89,6 @@ public class TcpChannel<Packet> {
                 try {
                     System.out.println(Integer.toString(i+1)+ "trial.");
                     socket = new Socket(ip,port);
-                    Logger.log("Connected!");
 
                     //Sleep a while to wait device to be ready
                     //Thread.sleep(postSleep);
@@ -115,6 +114,7 @@ public class TcpChannel<Packet> {
                 break;
             }
             if(i == tryCount) throw new RuntimeException("Connection timeout!");
+            Logger.log("Connected!");
 
         } catch (Exception e) {
             e.printStackTrace();

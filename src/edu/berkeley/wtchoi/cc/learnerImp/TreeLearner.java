@@ -40,6 +40,9 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     private State stateUnderTesting;
     private State targetState;
     private boolean askedRestartingQuestion;
+    private boolean askedPreSearch;
+    private int preSearchCount = 0;
+    private final int preSearchBound = 2;
 
     public TreeLearner(CSet<ICommand> initialPalette) {
         defaultPalette = new CSet<ICommand>();
@@ -124,6 +127,18 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
 
         //L* with CTree approach
         //----------------------
+        //Bounded State Pre-Search
+        if(stateUnderTesting != null && preSearchCount++ < preSearchBound){
+            ICommand recommendation = ctree.recommendNext(targetState);
+            if(recommendation != null){
+                questionVector.add(recommendation);
+                askedRestartingQuestion = true;
+                return false;
+            }
+        }
+        askedRestartingQuestion = false;
+        preSearchCount = 0;
+
         while(true){
             if(uniquesToBeTested.isEmpty()) break;
             State state = peakState(uniquesToBeTested);
@@ -141,6 +156,7 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
                 uniquesToBeTested.remove(state);
                 remainedObservations.remove(state);
             }
+            if(ctree.visited(state,suffix)) continue;
             stateUnderTesting = state;
             questionVector.addAll(state.getInput());
             questionVector.addAll(suffix);
@@ -153,7 +169,15 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
             CSet<CList<ICommand>> observations = remainedObservations.get(state);
             CList<ICommand> suffix = observations.pollFirst();
             if(!ctree.checkPossible(state, suffix)){
-                observations.remove(suffix);
+                //observations.remove(suffix);
+                if(observations.isEmpty()){
+                    frontiersToBeTested.remove(state);
+                    remainedObservations.remove(state);
+                    closeState(state);
+                }
+                continue;
+            }
+            if(ctree.visited(state,suffix)){
                 if(observations.isEmpty()){
                     frontiersToBeTested.remove(state);
                     remainedObservations.remove(state);
@@ -253,6 +277,13 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
     public void learn(CList<ICommand> input, CList<Observation> output) {
         CList<ICommand> equalInput;
         State state;
+
+        if(askedPreSearch){
+            ctree.addPath(targetState, input, output);
+            ctree.tryPruning(targetState,input);
+            targetState = ctree.getState(targetState,input);
+            return;
+        }
 
         if(askedRestartingQuestion){
             ctree.addPath(input,output);

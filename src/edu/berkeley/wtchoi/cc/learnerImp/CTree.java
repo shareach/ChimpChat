@@ -395,6 +395,22 @@ class CTree{
         return true;
     }
 
+    public boolean visited(State state, CList<ICommand> input){
+        state.normalize();
+        if(leafSet.contains(state.node)) return false;
+        if(input.isEmpty()) return true;
+        return !leafSet.contains(getNode(state.node,input));
+    }
+
+    //Assume input state is visited
+    public ICommand recommendNext(State state){
+        state.normalize();
+        for(Pair<Node,Observation> ch: state.node.children.values()){
+            if(leafSet.contains(ch.fst)) return ch.fst.inputFromParent;
+        }
+        return null;
+    }
+
 
     //For Tree Visualization Part
     //----------------------------
