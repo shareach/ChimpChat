@@ -28,9 +28,12 @@ class CTree{
 
     private class Node implements Comparable<Node> {
 
+        public String color = "gray";
+
         Integer id;
+        Integer depth;
         private CSet<ICommand> palette;
-        private boolean isStopNode = false;
+        boolean isStopNode = false;
 
         Node parent;
         ICommand inputFromParent;
@@ -38,10 +41,12 @@ class CTree{
 
         Map<ICommand,Pair<Node,Observation>> children;
 
-        private Node(CSet<ICommand> palette){
+        private Node(CSet<ICommand> palette, int depth){
             children = new TreeMap<ICommand,Pair<Node,Observation>>();
             id = nidset++;
             this.palette = palette;
+            this.depth = depth;
+
             leafSet.add(this);
         }
 
@@ -50,13 +55,27 @@ class CTree{
             inputFromParent = i;
             children = new TreeMap<ICommand,Pair<Node,Observation>>();
             id = nidset++;
+            depth = p.depth+1;
+
             leafSet.add(this);
         }
 
         private Node(){}
 
         public int compareTo(Node target){
-            return id.compareTo(target.id);
+            int f = depth.compareTo(target.depth);
+            if(f == 0)
+                return id.compareTo(target.id);
+            return f;
+        }
+
+        public boolean isAncestorOf(Node n){
+            Node cur = n;
+            while(cur.parent != null){
+                if(cur.id == this.id) return true;
+                cur = cur.parent;
+            }
+            return false;
         }
     }
 
@@ -70,6 +89,7 @@ class CTree{
             tiFromParent = target.tiFromParent;
             id = target.id;
             mergeTo = to;
+            depth = target.depth;
             this.internal = internal;
 
         }
@@ -82,7 +102,7 @@ class CTree{
         leafSet = new TreeSet<Node>();
         this.defaultPalette = defaultPalette;
 
-        root = new Node(initialPalette);
+        root = new Node(initialPalette,0);
         extend(root);
     }
 
@@ -128,10 +148,20 @@ class CTree{
         }
     }
 
-    private void buildInputPath(Node target, List<ICommand> lst){
-        if(target == root) return;
-        buildInputPath(target.parent, lst);
-        lst.add(target.inputFromParent);
+    private boolean buildInputPath(Node from, Node target, CList<ICommand> lst){
+        if(target == from) return true;
+        if(target == root) return false;
+        if(buildInputPath(from, target.parent, lst)){
+            lst.add(target.inputFromParent);
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    private void buildInputPath(Node target, CList<ICommand> lst){
+        buildInputPath(root,target,lst);
     }
 
     private void extend(Node target){
@@ -181,7 +211,7 @@ class CTree{
             if(candidate.parent != null && candidate.tiFromParent.didNothing()){
                 candidates.add(candidate.parent);
                 for(Pair<Node,Observation> ch: candidate.parent.children.values()){
-                    if(ch.fst.id == candidate.id) continue;
+                    if(ch.fst.id == candidate.id || leafSet.contains(ch.fst)) continue;
                     if(ch.fst.tiFromParent.didNothing() && ! (ch.fst instanceof MergeNode))
                         candidates2.add(ch.fst);
                 }
@@ -296,12 +326,7 @@ class CTree{
         }
 
         public boolean isPrefixOf(State target){
-            Node cur = target.node;
-            while(cur.parent != null){
-                if(cur.id == this.node.id) return true;
-                cur = cur.parent;
-            }
-            return false;
+            return node.isAncestorOf(target.node);
         }
 
         public void removePrefixFrom(CList<ICommand> input){
@@ -327,6 +352,14 @@ class CTree{
 
             input.clear();
             input.addAll(temp);
+        }
+
+        public int depth(){
+            return node.depth;
+        }
+
+        public void setColor(String c){
+            node.color = c;
         }
     }
 
@@ -403,10 +436,14 @@ class CTree{
     }
 
     //Assume input state is visited
-    public ICommand recommendNext(State state){
+    public CList<ICommand> recommendNext(State state){
         state.normalize();
-        for(Pair<Node,Observation> ch: state.node.children.values()){
-            if(leafSet.contains(ch.fst)) return ch.fst.inputFromParent;
+        if(leafSet.contains(state.node)) return null;
+
+        CList<ICommand> inputVector = new CVector<ICommand>();
+        for(Node n : leafSet){
+            if(buildInputPath(state.node, n, inputVector)) return inputVector;
+            inputVector.clear();
         }
         return null;
     }
@@ -427,7 +464,7 @@ class CTree{
     protected void drawNode(Node n, GraphViz gv){
         String id1 = String.valueOf(n.id);
         if(!n.children.isEmpty())
-            gv.addln(id1+" [style = bold, shape = circle];");
+            gv.addln(id1+" [style = bold, shape = circle, color="+n.color+"];");
         else if (!n.isStopNode)
             gv.addln(id1+" [shape = point, color=gray];");
     }
@@ -436,16 +473,21 @@ class CTree{
         String id1 = String.valueOf(n.id);
         String id2 = String.valueOf(child.id);
         if(leafSet.contains(child)){
-            gv.addln(id1 + "->" + id2 + "[color=gray, fontsize=10, label=\""+ i +"\"];");
+            if(n.color.equals("blue")){
+                gv.addln(id1 + "->" + id2 + "[color=gray, fontsize=12, label=\""+ i+"\"];");
+            }
+            else{
+                gv.addln(id1 + "->" + id2 + "[color=gray];");
+            }
         }
         else{
             if(child instanceof MergeNode){
                 MergeNode node = (MergeNode) child;
                 if(!node.internal){
-                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = green, label=\""+ i+"\"];");
+                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = green, fontsize=12, label=\""+ i+"\"];");
                 }
                 else if(child.tiFromParent.didNothing())
-                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = blue, label=\""+ i+"\"];");
+                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = blue, fontsize=12, label=\""+ i+"\"];");
                 else
                     gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
             }

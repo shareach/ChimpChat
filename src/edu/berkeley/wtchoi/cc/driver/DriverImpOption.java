@@ -26,7 +26,7 @@ public class DriverImpOption {
 
 
         mTickCount = getenv_as_int("TICK_COUNT", 4);
-        mTickInterval = getenv_as_int("TICK_INTERVAL",200);
+        mTickInterval = getenv_as_int("TICK_INTERVAL",100);
         mTickSnooze = getenv_as_int("TICK_SNOOZE",2);
         mStableCount = getenv_as_int("STABLE_COUNT",1);
     }

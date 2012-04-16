@@ -66,8 +66,6 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
         channel = TcpChannel.getClientSide("127.0.0.1",13338);
         channel.setTryCount(5);
         channel.setTryInterval(1000);
-        channel.setPreSleep(1000);
-        channel.setPostSleep(0);
 
 
         //2. Initiate ChimpChat connection

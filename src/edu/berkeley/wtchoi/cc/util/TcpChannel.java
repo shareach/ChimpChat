@@ -22,8 +22,6 @@ public class TcpChannel<Packet> {
 
     private int tryCount = 1;
     private int tryInterval = 1000;
-    private int postSleep = 100;
-    private int preSleep = 100;
 
     //used for asynchronous connection
     private Thread __initiator;
@@ -221,14 +219,6 @@ public class TcpChannel<Packet> {
             e.printStackTrace();
             throw new RuntimeException("Cannot close channel");
         }
-    }
-
-    public void setPostSleep(int t){
-        postSleep = t;
-    }
-
-    public void setPreSleep(int t){
-        preSleep = t;
     }
 }
 
