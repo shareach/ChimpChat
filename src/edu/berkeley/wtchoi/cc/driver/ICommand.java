@@ -1,7 +1,8 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-import com.android.chimpchat.core.IChimpDevice;
+import edu.berkeley.wtchoi.cc.util.E;
 import edu.berkeley.wtchoi.cc.util.TcpChannel;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -27,7 +28,7 @@ public abstract class ICommand implements Comparable<ICommand>{
         channel.sendPacket(ack);
 
         //2. Minor sleep
-        miniSleep();
+        E.sleep(500);
 
         //3. Wait for App Supervisor response
         DriverPacket receivingPacket;
@@ -39,13 +40,6 @@ public abstract class ICommand implements Comparable<ICommand>{
             throw new RuntimeException("Application Execution is not guided correctly");
         }
         return true;
-    }
-
-    protected void miniSleep(){
-        try{
-            Thread.sleep(500);
-        }
-        catch(Exception e){ }
     }
 
     public int compareTo(ICommand target){

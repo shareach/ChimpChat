@@ -515,9 +515,9 @@ class CTree{
         }
     }
 
-    CTreeViewer<ICommand,Observation> viewer;
+    CTreeViewer viewer;
     public void startViewer(){
-        viewer = new CTreeViewer<ICommand, Observation>(this);
+        viewer = new CTreeViewer(this);
         SwingUtilities.invokeLater(viewer);
     }
 

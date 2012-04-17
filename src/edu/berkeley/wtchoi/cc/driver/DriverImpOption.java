@@ -7,6 +7,9 @@ package edu.berkeley.wtchoi.cc.driver;
  * Time: 8:46 PM
  * To change this template use File | Settings | File Templates.
  */
+
+import edu.berkeley.wtchoi.cc.util.E;
+
 public class DriverImpOption {
     private String mainActivity;
     private String applicationPackage;
@@ -25,10 +28,10 @@ public class DriverImpOption {
         mainActivity = System.getenv("MAIN_ACTIVITY");//("com.android.demo.notepad3.Notepadv3")
 
 
-        mTickCount = getenv_as_int("TICK_COUNT", 4);
-        mTickInterval = getenv_as_int("TICK_INTERVAL",100);
-        mTickSnooze = getenv_as_int("TICK_SNOOZE",2);
-        mStableCount = getenv_as_int("STABLE_COUNT",1);
+        mTickCount    = E.getenv_as_int("TICK_COUNT", 4);
+        mTickInterval = E.getenv_as_int("TICK_INTERVAL",50);
+        mTickSnooze   = E.getenv_as_int("TICK_SNOOZE",2);
+        mStableCount  = E.getenv_as_int("STABLE_COUNT",1);
     }
 
     //to check whether all basic information is there
@@ -99,16 +102,5 @@ public class DriverImpOption {
 
     public void setADB(String s){
         adb = s;
-    }
-
-    private static int getenv_as_int(String envvar, int default_value){
-        String value = System.getenv(envvar);
-
-        if(value == null){
-            return default_value;
-        }
-
-        int decoded = Integer.getInteger(value);
-        return decoded;
     }
 }

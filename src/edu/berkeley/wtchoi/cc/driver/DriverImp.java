@@ -1,7 +1,11 @@
 package edu.berkeley.wtchoi.cc.driver;
 
+
+
 import com.android.chimpchat.ChimpChat;
 import com.android.chimpchat.core.IChimpDevice;
+
+import edu.berkeley.wtchoi.cc.util.E;
 import edu.berkeley.wtchoi.cc.util.TcpChannel;
 import edu.berkeley.wtchoi.cc.driver.DriverPacket.OptionIndex;
 
@@ -73,6 +77,8 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
         Collection<String> coll = new LinkedList<String>();
         Map<String, Object> extras = new HashMap<String, Object>();
         mDevice.startActivity(null, null, null, null, coll, extras, runComponent, 0);
+        E.sleep(100);
+
 
         //3. Wait for communication channel initiation
         System.out.println("wait");
