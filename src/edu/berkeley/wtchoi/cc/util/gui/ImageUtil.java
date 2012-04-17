@@ -24,9 +24,13 @@ public abstract class ImageUtil {
         if(image.getWidth() == x && image.getHeight() == y)
             return ImageUtil.copyImage(image) ;
 
-        BufferedImage scaledImage = new BufferedImage(x,y, image.getType());
+        BufferedImage scaledImage = new BufferedImage(x,y, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics2D = scaledImage.createGraphics();
         graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        //graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        //graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
 
         if(!preserveRatio){
             graphics2D.drawImage(image,0,0,x,y,null);
