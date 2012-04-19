@@ -39,6 +39,9 @@ class CTree{
         ICommand inputFromParent;
         TransitionInfo tiFromParent;
 
+        Node mergeTo;
+        boolean temporallyMerged = false;
+
         Map<ICommand,Pair<Node,Observation>> children;
 
         private Node(CSet<ICommand> palette, int depth){
@@ -56,6 +59,7 @@ class CTree{
             children = new TreeMap<ICommand,Pair<Node,Observation>>();
             id = nidset++;
             depth = p.depth+1;
+            if(depth > treeDepth) treeDepth = depth;
 
             leafSet.add(this);
         }
@@ -77,26 +81,20 @@ class CTree{
             }
             return false;
         }
-    }
 
-    private class MergeNode extends Node{
-        private Node mergeTo;
-        private boolean internal;
+        public void mergeTo(Node target,  boolean temporalFlag){
+            mergeTo = target;
+            temporallyMerged = temporalFlag;
+        }
 
-        public MergeNode(Node target, Node to, boolean internal){
-            parent = target.parent;
-            inputFromParent = target.inputFromParent;
-            tiFromParent = target.tiFromParent;
-            id = target.id;
-            mergeTo = to;
-            depth = target.depth;
-            this.internal = internal;
-
+        public boolean isMerged(){
+            return (mergeTo != null);
         }
     }
 
     private  Node root;
     private Set<Node> leafSet;
+    private int treeDepth;
 
     public CTree(CSet<ICommand> initialPalette, CSet<ICommand> defaultPalette){
         leafSet = new TreeSet<Node>();
@@ -212,7 +210,7 @@ class CTree{
                 candidates.add(candidate.parent);
                 for(Pair<Node,Observation> ch: candidate.parent.children.values()){
                     if(ch.fst.id == candidate.id || leafSet.contains(ch.fst)) continue;
-                    if(ch.fst.tiFromParent.didNothing() && ! (ch.fst instanceof MergeNode))
+                    if(ch.fst.tiFromParent.didNothing() && ! (ch.fst.isMerged()))
                         candidates2.add(ch.fst);
                 }
             }
@@ -228,7 +226,7 @@ class CTree{
 
             for(Pair<Node,Observation> ch: candidate.children.values()){
                 if(leafSet.contains(ch.fst)) continue;
-                if(ch.fst.tiFromParent.didNothing() && ! (ch.fst instanceof MergeNode))
+                if(ch.fst.tiFromParent.didNothing() && ! (ch.fst.isMerged()))
                     candidates2.add(ch.fst);
             }
         }
@@ -236,14 +234,13 @@ class CTree{
     }
 
     //merge for internal purpose
-    private void doMerge(Node target, Node to, boolean internal){
-        Node ghost = new MergeNode(target,to, internal);
-        target.parent.children.get(target.inputFromParent).setFirst(ghost);
-        remove(target);
+    private void doMerge(Node target, Node to, boolean temporalFlag){
+        target.mergeTo(to,temporalFlag);
+        if(temporalFlag) remove(target);
     }
 
     private void remove(Node n){
-        if(n instanceof MergeNode) return;
+        if(n.isMerged()) return;
         leafSet.remove(n);
         for(Pair<Node,Observation> ch : n.children.values())
             remove(ch.getFirst());
@@ -279,8 +276,8 @@ class CTree{
             Iterator<ICommand> iter = input.iterator();
             while(iter.hasNext() && !leafSet.contains(n)){
                 n = n.children.get(iter.next()).fst;
-                if(n instanceof MergeNode){
-                    n = ((MergeNode)n).mergeTo;
+                if(n.isMerged()){
+                    n = n.mergeTo;
                 }
             }
             CList<ICommand> tmp = new CVector<ICommand>();
@@ -354,12 +351,16 @@ class CTree{
             input.addAll(temp);
         }
 
-        public int depth(){
-            return node.depth;
-        }
-
         public void setColor(String c){
             node.color = c;
+        }
+
+        public int getDepth(){
+            return node.depth + input.size();
+        }
+
+        public State getMergeTo(){
+            return new State(node.mergeTo, ctree);
         }
     }
 
@@ -448,6 +449,10 @@ class CTree{
         return null;
     }
 
+    public int depth(){
+        return treeDepth;
+    }
+
 
     //For Tree Visualization Part
     //----------------------------
@@ -481,15 +486,11 @@ class CTree{
             }
         }
         else{
-            if(child instanceof MergeNode){
-                MergeNode node = (MergeNode) child;
-                if(!node.internal){
-                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = green, fontsize=12, label=\""+ i+"\"];");
-                }
-                else if(child.tiFromParent.didNothing())
-                    gv.addln(id1 + "->" + node.mergeTo.id + "[color = blue, fontsize=12, label=\""+ i+"\"];");
+            if(child.isMerged()){
+                if(child.tiFromParent.didNothing())
+                    gv.addln(id1 + "->" + child.mergeTo.id + "[color = blue, fontsize=12, label=\""+ i+"\"];");
                 else
-                    gv.addln(id1 + "->" + node.mergeTo.id + "[label=\""+ i+"\"];");
+                    gv.addln(id1 + "->" + child.mergeTo.id + "[label=\""+ i+"\"];");
             }
             else{
                 if(child.isStopNode) return;
@@ -503,14 +504,23 @@ class CTree{
         }
     }
 
+    protected void drawEdgeToMerge(Node n, GraphViz gv){
+        gv.addln(n.id + "-" + n.mergeTo.id + "[color = green, fontsize=12\"];");
+    }
+
     protected void drawTree(Node n, GraphViz gv){
         String id1 = String.valueOf(n.id);
         drawNode(n,gv);
 
+        if(n.temporallyMerged){
+            drawEdgeToMerge(n,gv);
+            return;
+        }
+
         for(ICommand i: n.children.keySet()){
             Node child =n.children.get(i).fst;
             drawEdgeToChild(n,i,child,gv);
-            if(child instanceof MergeNode) continue;
+            if(child.isMerged() && !child.temporallyMerged) continue;
             drawTree(child, gv);
         }
     }

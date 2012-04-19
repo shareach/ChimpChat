@@ -34,7 +34,8 @@ public class CTreeViewer implements Runnable{
 
         frame = new JFrame("TreeView");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setContentPane(scroller);
+        frame.getContentPane();
+        frame.getContentPane().add(scroller);
         frame.setSize(800,600);
 
         //frame = new JFrame("TreeView");
