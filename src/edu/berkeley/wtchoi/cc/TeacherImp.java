@@ -1,7 +1,7 @@
 package edu.berkeley.wtchoi.cc;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
-import edu.berkeley.wtchoi.cc.driver.IDriver;
+import edu.berkeley.wtchoi.cc.driver.Driver;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo.PointFactory;
 
@@ -26,10 +26,10 @@ import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
 public class TeacherImp implements Teacher<ICommand, Observation, AppModel> {
 
-    private IDriver<TransitionInfo> controller;
+    private Driver<TransitionInfo> controller;
     private PointFactory pointFactory = TouchFactory.getInstance();
 
-    public TeacherImp(IDriver<TransitionInfo> imp) {
+    public TeacherImp(Driver<TransitionInfo> imp) {
         controller = imp;
     }
 
@@ -49,8 +49,13 @@ public class TeacherImp implements Teacher<ICommand, Observation, AppModel> {
         if(requireRestart) controller.restartApp();
         for (ICommand t : input) {
             if (!controller.go(t)){
-                output.add(Observation.getStopObservation());
-                return output;
+                if(controller.isStopState()){
+                    output.add(Observation.getStopObservation());
+                    return output;
+                }
+                if(controller.isErrorState()){
+                    throw new RuntimeException("Cannot send command!");
+                }
             }
 
             //Obtaining palette
@@ -69,7 +74,6 @@ public class TeacherImp implements Teacher<ICommand, Observation, AppModel> {
 
     public boolean init() {
         //1. Initiate connection with application
-        if (!controller.connectToDevice()) return false;
         if (!controller.initiateApp()) return false;
 
         //2. Warming palette table for initial state

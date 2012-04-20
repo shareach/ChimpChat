@@ -5,7 +5,7 @@ import com.android.chimpchat.core.PhysicalButton;
 import com.android.chimpchat.core.TouchPressType;
 
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
-
+import edu.berkeley.wtchoi.cc.driver.Device.CannotSendCommand;
 
 /**
  * Created by IntelliJ IDEA.
@@ -26,7 +26,7 @@ public final class PushCommand extends ICommand {
 
     private Type type;
 
-    public boolean sendCommand(DriverImp driver){
+    public void sendCommand(Driver driver) throws ApplicationTerminated, CannotSendCommand{
         switch(this.type){
             case MENU:
                 //Code fragment for push MENU button
@@ -36,7 +36,7 @@ public final class PushCommand extends ICommand {
                 driver.device.press(PhysicalButton.BACK, TouchPressType.DOWN_AND_UP);
                 break;
         }
-        return super.sendCommandAck(driver.channel);
+        super.sendCommandAck(driver.channel);
     }
 
     private PushCommand(Type t){

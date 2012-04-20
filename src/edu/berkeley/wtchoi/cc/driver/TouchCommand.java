@@ -2,6 +2,7 @@ package edu.berkeley.wtchoi.cc.driver;
 
 import com.android.chimpchat.core.TouchPressType;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
+import edu.berkeley.wtchoi.cc.driver.Device.CannotSendCommand;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,9 +34,9 @@ public final class TouchCommand extends ICommand {//TODO
         this.y = y;
     }
 
-    public boolean sendCommand(DriverImp driver) {
+    public void sendCommand(Driver driver) throws ApplicationTerminated, CannotSendCommand{
         driver.device.touch(x, y, TouchPressType.DOWN_AND_UP);
-        return super.sendCommandAck(driver.channel);
+        super.sendCommandAck(driver.channel);
     }
 
     public Integer getX() {

@@ -7,6 +7,7 @@ import com.android.chimpchat.core.PhysicalButton;
 import com.android.chimpchat.core.TouchPressType;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import edu.berkeley.wtchoi.cc.util.E;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -30,7 +31,8 @@ import java.util.regex.Pattern;
 //1. to provide interface with success/failure return
 //2. to connect device with specific port forwarding
 
-public class Device{
+class Device{
+    public class CannotSendCommand extends Exception{}
 
     private static TreeMap<Long, LinkedList<String>> logMap;
     private static ChimpChat mChimpChat;
@@ -70,10 +72,12 @@ public class Device{
     }
 
 
-    private IChimpDevice mDevice;
+    private IChimpDevice mChimpDevice;
+    private IDevice mIDevice;
 
-    private Device(IChimpDevice d){
-        mDevice = d;
+    private Device(IChimpDevice cd, IDevice id){
+        mChimpDevice = cd;
+        mIDevice = id;
     }
 
     public static Device waitForConnection(long timeout, String identifier, int localport, int remortport){
@@ -81,10 +85,7 @@ public class Device{
         Pattern pattern = Pattern.compile(identifier);
 
         while(!bridge.isConnected() || !bridge.hasInitialDeviceList()){
-            try{
-                Thread.sleep(200);
-            }
-            catch(Exception e){}
+            E.sleep(200);
         }
 
         IDevice target = null;
@@ -108,56 +109,52 @@ public class Device{
 
         IChimpDevice device = mChimpChat.waitForConnection(timeout, identifier);
         if(device == null) return null;
-        return new Device(device);
+        return new Device(device,target);
+    }
+
+    public boolean isEmulator(){
+        return mIDevice.isEmulator();
     }
 
     public boolean touch(int x, int y, TouchPressType type){
-        mDevice.touch(x,y,type);
+        mChimpDevice.touch(x, y, type);
         LinkedList<String> log = pollLog();
-        for(String s:log){
-            System.out.println(s);
-        }
+        if(log.size() != 0) return false;
         return true;
     }
 
     public boolean press(PhysicalButton button, TouchPressType type){
-        mDevice.press(button, type);
+        mChimpDevice.press(button, type);
         LinkedList<String> log = pollLog();
-        for(String s:log){
-            System.out.println(s);
-        }
+        if(log.size() != 0) return false;
         return true;
     }
 
     public boolean type(String string){
-        mDevice.type(string);
+        mChimpDevice.type(string);
         LinkedList<String> log = pollLog();
-        for(String s:log){
-            System.out.println(s);
-        }
+        if(log.size() != 0) return false;
         return true;
     }
 
     public boolean press(String key, TouchPressType type){
-        mDevice.press(key,type);
+        mChimpDevice.press(key, type);
         LinkedList<String> log = pollLog();
-        //TODO
+        if(log.size() != 0) return false;
         return true;
     }
 
     public boolean wake(){
-        mDevice.wake();
+        mChimpDevice.wake();
         LinkedList<String> log = pollLog();
-        //TODO
+        if(log.size() != 0) return false;
         return true;
     }
 
     public boolean startActivity(String s1, String s2, String s3, String s4, Collection<String> opt1, Map<String, Object> opt2, String s5, int i){
-        mDevice.startActivity(s1,s2,s3,s4,opt1,opt2,s5,i);
+        mChimpDevice.startActivity(s1, s2, s3, s4, opt1, opt2, s5, i);
         LinkedList<String> log = pollLog();
-        for(String s:log){
-            System.out.println(s);
-        }
+        if(log.size() != 0) return false;
         return true;
     }
 
@@ -165,6 +162,6 @@ public class Device{
         long tid = Thread.currentThread().getId();
         LinkedList<String> log = logMap.get(tid);
         logMap.put(tid,new LinkedList<String>());
-        return log;
+        return (log == null)? (new LinkedList<String>()) : log;
     }
 }

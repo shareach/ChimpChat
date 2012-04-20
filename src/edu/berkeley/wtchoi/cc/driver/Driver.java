@@ -14,9 +14,9 @@ import java.util.*;
  * To change this template use File | Settings | File Templates.
  */
 
-public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
+public class Driver<TransitionInfo>{
    
-    private DriverImpOption option;
+    private DriverOption option;
         
     //private ChimpChat mChimpchat;
 
@@ -26,34 +26,31 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
 
     private boolean justRestarted = false;
     private boolean justStoped = false;
-    private boolean isCurrentViewOld = true;
-    private ViewInfo currentView;
+    private boolean errorOccur = false;
 
-
-
-    public DriverImp(DriverImpOption option) {
+    private Driver(DriverOption option, Device device) {
         super();
-        option.assertComplete();
         this.option = option;
+        this.device = device;
     }
 
 
     // Initiate application, connect chip, connect channel
-    public boolean connectToDevice() {
+    public static <T> Driver<T> connectToDevice(DriverOption option, String deviceID, int localport, Class<T> clazz){
+        option.assertComplete();
+
         Device.init(option.getADB());
-        device = Device.waitForConnection(option.getTimeout(), ".*", 13337, 13338);
+        Device device = Device.waitForConnection(option.getTimeout(), deviceID, localport, 13338);
         if (device == null) {
             //throw new RuntimeException("Couldn't connect.");
-            return false;
+            return null;
         }
         device.wake();
-        return true;
+        return new Driver<T>(option,device);
     }
 
 
     public boolean initiateApp() {
-        isCurrentViewOld = true;
-
         ////1. Initiate Communication TcpChannel (Asynchronous)
         //channel = TcpChannel.getServerSide(13338);
         //channel.connectAsynchronous();
@@ -113,10 +110,11 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
 
     public boolean restartApp() {
         if(justRestarted) return true;
-        isCurrentViewOld = false;
 
-        if(!justStoped)
-            channel.sendPacket(DriverPacket.getReset());
+        if(!justStoped) channel.sendPacket(DriverPacket.getReset());
+
+        justStoped = false;
+        errorOccur = false;
 
         return initiateApp();
     }
@@ -143,12 +141,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
     }
 
     public ViewInfo getCurrentView(){
-        if(isCurrentViewOld){
-            currentView = getView();
-            isCurrentViewOld = false;
-        }
-        return currentView;
-
+        return getView();
     }
 
     public TransitionInfo getCurrentTransitionInfo(){
@@ -172,12 +165,28 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
         return true;
     }
 
-
-
     public boolean go(ICommand c) {
         justRestarted = false;
-        justStoped = !c.sendCommand(this);
-        isCurrentViewOld = true;
-        return !justStoped;
+        boolean result = false;
+        try{
+            c.sendCommand(this);
+            result = true;
+        }
+        catch(ICommand.ApplicationTerminated e){
+            justStoped = true;
+        }
+        catch(Device.CannotSendCommand ee){
+            errorOccur = true;
+        }
+
+        return result;
+    }
+
+    public boolean isStopState(){
+        return justStoped;
+    }
+
+    public boolean isErrorState(){
+        return errorOccur;
     }
 }

@@ -2,7 +2,7 @@ package edu.berkeley.wtchoi.cc.driver;
 
 import java.io.Serializable;
 
-public class DriverPacket implements Serializable{
+class DriverPacket implements Serializable{
 
     private static final long serialVersionUID = -5186309675577891457L;
 

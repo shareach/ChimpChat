@@ -2,10 +2,9 @@ package edu.berkeley.wtchoi.cc;
 
 import java.io.*;
 
-import edu.berkeley.wtchoi.cc.driver.DriverImp;
-import edu.berkeley.wtchoi.cc.driver.DriverImpOption;
+import edu.berkeley.wtchoi.cc.driver.Driver;
+import edu.berkeley.wtchoi.cc.driver.DriverOption;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
-import edu.berkeley.wtchoi.cc.driver.IDriver;
 import edu.berkeley.wtchoi.cc.learnerImp.TreeLearner;
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
 import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
@@ -13,7 +12,6 @@ import edu.berkeley.wtchoi.cc.learning.*;
 import edu.berkeley.wtchoi.cc.util.Logger;
 import edu.berkeley.wtchoi.cc.util.LoggerImp;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-//import com.android.chimpchat.core.IChimpView;
 
 
 public class Monkey {
@@ -26,10 +24,12 @@ public class Monkey {
             }
         });
 
-        DriverImpOption option = new DriverImpOption();
+        DriverOption option = new DriverOption();
         option.fillFromEnvironmentVariables();
-        
-        IDriver<TransitionInfo> controller = new DriverImp<TransitionInfo>(option);
+        Driver<TransitionInfo> controller = Driver.connectToDevice(option, ".*", 13337, TransitionInfo.class);
+        if(controller == null) throw new RuntimeException("Cannot initiate driver");
+
+
         TeacherImp teacher = new TeacherImp(controller);
 
         if(!teacher.init()) throw new RuntimeException("Cannot initialize teacher");

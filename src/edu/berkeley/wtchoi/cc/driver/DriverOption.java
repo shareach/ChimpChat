@@ -10,7 +10,7 @@ package edu.berkeley.wtchoi.cc.driver;
 
 import edu.berkeley.wtchoi.cc.util.E;
 
-public class DriverImpOption {
+public class DriverOption {
     private String mainActivity;
     private String applicationPackage;
     private long   timeout = 5000;
