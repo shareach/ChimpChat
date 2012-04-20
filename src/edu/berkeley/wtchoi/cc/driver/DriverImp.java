@@ -41,7 +41,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
     // Initiate application, connect chip, connect channel
     public boolean connectToDevice() {
         Device.init(option.getADB());
-        device = Device.waitForConnection(option.getTimeout(), ".*", 13337);
+        device = Device.waitForConnection(option.getTimeout(), ".*", 13337, 13338);
         if (device == null) {
             //throw new RuntimeException("Couldn't connect.");
             return false;

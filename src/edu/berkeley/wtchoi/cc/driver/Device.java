@@ -26,7 +26,10 @@ import java.util.regex.Pattern;
  * To change this template use File | Settings | File Templates.
  */
 
-//Device class wrap AdbChimpChat class to provide interface with success/failure return
+//Device class wraps AdbChimpChat class. Two main purposes:
+//1. to provide interface with success/failure return
+//2. to connect device with specific port forwarding
+
 public class Device{
 
     private static TreeMap<Long, LinkedList<String>> logMap;
@@ -73,7 +76,7 @@ public class Device{
         mDevice = d;
     }
 
-    public static Device waitForConnection(long timeout, String identifier, int port){
+    public static Device waitForConnection(long timeout, String identifier, int localport, int remortport){
 
         Pattern pattern = Pattern.compile(identifier);
 
@@ -96,7 +99,7 @@ public class Device{
             throw new RuntimeException("Cannot find device!");
         }
         try{
-            target.createForward(port,13338);
+            target.createForward(localport,remortport);
         }
         catch(Exception e){
             e.printStackTrace();
