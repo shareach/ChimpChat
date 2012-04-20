@@ -1,9 +1,7 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.TouchPressType;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
-import edu.berkeley.wtchoi.cc.util.TcpChannel;
 
 /**
  * Created by IntelliJ IDEA.
@@ -36,7 +34,7 @@ public final class TouchCommand extends ICommand {//TODO
     }
 
     public boolean sendCommand(DriverImp driver) {
-        driver.mDevice.touch(x, y, TouchPressType.DOWN_AND_UP);
+        driver.device.touch(x, y, TouchPressType.DOWN_AND_UP);
         return super.sendCommandAck(driver.channel);
     }
 

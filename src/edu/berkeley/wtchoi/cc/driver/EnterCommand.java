@@ -1,9 +1,8 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.TouchPressType;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
-import edu.berkeley.wtchoi.cc.util.TcpChannel;
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -32,7 +31,7 @@ public final class EnterCommand extends ICommand {
 
     public boolean sendCommand(DriverImp driver){
         if(!hasFocus){
-            driver.mDevice.touch(x,y,TouchPressType.DOWN_AND_UP);
+            driver.device.touch(x,y,TouchPressType.DOWN_AND_UP);
             super.sendCommandAck(driver.channel);
         }
 
@@ -40,10 +39,10 @@ public final class EnterCommand extends ICommand {
         String temp = "";
         for(char c: contents){
             if(c == ' '){
-                driver.mDevice.press("KEYCODE_SPACE", TouchPressType.DOWN_AND_UP);
+                driver.device.press("KEYCODE_SPACE", TouchPressType.DOWN_AND_UP);
                 continue;
             }
-            driver.mDevice.type(String.valueOf(c));
+            driver.device.type(String.valueOf(c));
         }
         super.sendCommandAck(driver.channel);
         return true;

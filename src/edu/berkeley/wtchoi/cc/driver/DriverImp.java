@@ -1,10 +1,5 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-
-
-import com.android.chimpchat.ChimpChat;
-import com.android.chimpchat.core.IChimpDevice;
-
 import edu.berkeley.wtchoi.cc.util.E;
 import edu.berkeley.wtchoi.cc.util.TcpChannel;
 import edu.berkeley.wtchoi.cc.driver.DriverPacket.OptionIndex;
@@ -23,9 +18,10 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
    
     private DriverImpOption option;
         
-    private ChimpChat mChimpchat;
+    //private ChimpChat mChimpchat;
 
-    IChimpDevice mDevice;
+    //IChimpDevice mDevice;
+    Device device;
     TcpChannel<DriverPacket> channel;
 
     private boolean justRestarted = false;
@@ -44,19 +40,13 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
 
     // Initiate application, connect chip, connect channel
     public boolean connectToDevice() {
-        //3. Boot ChimpChat Instance
-        TreeMap<String, String> options = new TreeMap<String, String>();
-        options.put("backend", "adb");
-        options.put("adbLocation", option.getADB());
-        mChimpchat = ChimpChat.getInstance(options);
-
-        //4. Initiate ChimpChat TcpChannel with a target device
-        mDevice = mChimpchat.waitForConnection(option.getTimeout(), ".*");
-        if (mDevice == null) {
+        Device.init(option.getADB());
+        device = Device.waitForConnection(option.getTimeout(), ".*");
+        if (device == null) {
             //throw new RuntimeException("Couldn't connect.");
             return false;
         }
-        mDevice.wake();
+        device.wake();
         return true;
     }
 
@@ -76,7 +66,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
         String runComponent = option.getRunComponent();
         Collection<String> coll = new LinkedList<String>();
         Map<String, Object> extras = new HashMap<String, Object>();
-        mDevice.startActivity(null, null, null, null, coll, extras, runComponent, 0);
+        device.startActivity(null, null, null, null, coll, extras, runComponent, 0);
         E.sleep(100);
 
 
@@ -133,8 +123,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
 
 
     public void shutdown() {
-        mChimpchat.shutdown();
-        mDevice = null;
+        device = null;
     }
 
 

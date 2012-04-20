@@ -1,11 +1,11 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-import com.android.chimpchat.core.IChimpDevice;
+
 import com.android.chimpchat.core.PhysicalButton;
 import com.android.chimpchat.core.TouchPressType;
 
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
-import edu.berkeley.wtchoi.cc.util.TcpChannel;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,10 +30,10 @@ public final class PushCommand extends ICommand {
         switch(this.type){
             case MENU:
                 //Code fragment for push MENU button
-                driver.mDevice.press(PhysicalButton.MENU, TouchPressType.DOWN_AND_UP);
+                driver.device.press(PhysicalButton.MENU, TouchPressType.DOWN_AND_UP);
                 break;
             case BACK:
-                driver.mDevice.press(PhysicalButton.BACK, TouchPressType.DOWN_AND_UP);
+                driver.device.press(PhysicalButton.BACK, TouchPressType.DOWN_AND_UP);
                 break;
         }
         return super.sendCommandAck(driver.channel);
