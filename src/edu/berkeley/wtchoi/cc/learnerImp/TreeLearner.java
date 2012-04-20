@@ -145,7 +145,7 @@ public class TreeLearner implements Learner<ICommand, Observation, AppModel> {
         count = count;
 
         if(!preSearchFailed){
-            if(currentMachineState.depth() - stateUnderTesting.depth() < preSearchBound){
+            if(currentMachineState.getDepth() - stateUnderTesting.getDepth() < preSearchBound){
                 CList<ICommand> recommendation = ctree.recommendNext(currentMachineState);
                 if(recommendation != null){
                     questionVector.addAll(recommendation);

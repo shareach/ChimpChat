@@ -5,18 +5,18 @@ import com.android.chimpchat.adb.AdbChimpDevice;
 import com.android.chimpchat.core.IChimpDevice;
 import com.android.chimpchat.core.PhysicalButton;
 import com.android.chimpchat.core.TouchPressType;
-import com.sun.deploy.util.LoggerTraceListener;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.Map;
 
-import java.lang.reflect.Field;
 import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,6 +31,7 @@ public class Device{
 
     private static TreeMap<Long, LinkedList<String>> logMap;
     private static ChimpChat mChimpChat;
+    private static AndroidDebugBridge bridge;
 
     public static void init(String adbPath){
         logMap = new TreeMap<Long, LinkedList<String>>();
@@ -39,6 +40,9 @@ public class Device{
         options.put("backend", "adb");
         options.put("adbLocation", adbPath);
         mChimpChat = ChimpChat.getInstance(options);
+
+        bridge = AndroidDebugBridge.getBridge();
+
 
         Logger LOG = Logger.getLogger(AdbChimpDevice.class.getName());
         LOG.addHandler(new Handler() {
@@ -69,7 +73,36 @@ public class Device{
         mDevice = d;
     }
 
-    public static Device waitForConnection(long timeout, String identifier){
+    public static Device waitForConnection(long timeout, String identifier, int port){
+
+        Pattern pattern = Pattern.compile(identifier);
+
+        while(!bridge.isConnected() || !bridge.hasInitialDeviceList()){
+            try{
+                Thread.sleep(200);
+            }
+            catch(Exception e){}
+        }
+
+        IDevice target = null;
+        for(IDevice device : bridge.getDevices()){
+            String serialNumber = device.getSerialNumber();
+            if(pattern.matcher(serialNumber).matches()){
+                    target = device;
+                    break;
+            }
+        }
+        if(target == null){
+            throw new RuntimeException("Cannot find device!");
+        }
+        try{
+            target.createForward(port,13338);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            throw new RuntimeException("Cannot make port forwarding!");
+        }
+
         IChimpDevice device = mChimpChat.waitForConnection(timeout, identifier);
         if(device == null) return null;
         return new Device(device);

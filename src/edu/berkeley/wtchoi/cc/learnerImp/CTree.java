@@ -7,11 +7,7 @@ import edu.berkeley.wtchoi.cc.util.datatype.CVector;
 import edu.berkeley.wtchoi.cc.util.datatype.CList;
 import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -40,7 +36,7 @@ class CTree{
         TransitionInfo tiFromParent;
 
         Node mergeTo;
-        boolean temporallyMerged = false;
+        boolean permanentlyMerged = false;
 
         Map<ICommand,Pair<Node,Observation>> children;
 
@@ -84,7 +80,7 @@ class CTree{
 
         public void mergeTo(Node target,  boolean temporalFlag){
             mergeTo = target;
-            temporallyMerged = temporalFlag;
+            permanentlyMerged = temporalFlag;
         }
 
         public boolean isMerged(){
@@ -487,7 +483,10 @@ class CTree{
         }
         else{
             if(child.isMerged()){
-                if(child.tiFromParent.didNothing())
+                if(!child.permanentlyMerged){
+                    gv.addln(id1 + "->" + child.mergeTo.id + "[color = green, fontsize=12, label=\""+ i+"\"];");
+                }
+                else if(child.tiFromParent.didNothing())
                     gv.addln(id1 + "->" + child.mergeTo.id + "[color = blue, fontsize=12, label=\""+ i+"\"];");
                 else
                     gv.addln(id1 + "->" + child.mergeTo.id + "[label=\""+ i+"\"];");
@@ -504,23 +503,14 @@ class CTree{
         }
     }
 
-    protected void drawEdgeToMerge(Node n, GraphViz gv){
-        gv.addln(n.id + "-" + n.mergeTo.id + "[color = green, fontsize=12\"];");
-    }
-
     protected void drawTree(Node n, GraphViz gv){
         String id1 = String.valueOf(n.id);
         drawNode(n,gv);
 
-        if(n.temporallyMerged){
-            drawEdgeToMerge(n,gv);
-            return;
-        }
-
         for(ICommand i: n.children.keySet()){
             Node child =n.children.get(i).fst;
             drawEdgeToChild(n,i,child,gv);
-            if(child.isMerged() && !child.temporallyMerged) continue;
+            if(child.isMerged()) continue;
             drawTree(child, gv);
         }
     }

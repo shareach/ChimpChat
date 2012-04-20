@@ -41,7 +41,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
     // Initiate application, connect chip, connect channel
     public boolean connectToDevice() {
         Device.init(option.getADB());
-        device = Device.waitForConnection(option.getTimeout(), ".*");
+        device = Device.waitForConnection(option.getTimeout(), ".*", 13337);
         if (device == null) {
             //throw new RuntimeException("Couldn't connect.");
             return false;
@@ -57,7 +57,7 @@ public class DriverImp<TransitionInfo> implements IDriver<TransitionInfo> {
         ////1. Initiate Communication TcpChannel (Asynchronous)
         //channel = TcpChannel.getServerSide(13338);
         //channel.connectAsynchronous();
-        channel = TcpChannel.getClientSide("127.0.0.1",13338);
+        channel = TcpChannel.getClientSide("127.0.0.1",13337);
         channel.setTryCount(5);
         channel.setTryInterval(1000);
 
