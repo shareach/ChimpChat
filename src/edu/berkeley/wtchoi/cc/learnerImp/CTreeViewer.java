@@ -12,7 +12,6 @@ import javax.swing.*;
 
 import edu.berkeley.wtchoi.cc.util.gui.FileImage;
 import edu.berkeley.wtchoi.cc.util.gui.ScaledFileImage;
-import edu.berkeley.wtchoi.cc.util.gui.ScalingFilePanel;
 import edu.berkeley.wtchoi.cc.util.gui.ScrollableFileLabel;
 
 import java.awt.Dimension;

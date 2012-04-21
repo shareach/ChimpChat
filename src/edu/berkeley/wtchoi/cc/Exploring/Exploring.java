@@ -32,7 +32,7 @@ public class Exploring<I extends Comparable<I>, O extends Comparable<O>> {
             System.out.println("Number of Reset:"+resetCount);
 
 
-            List<ExploreResult<I,O>> result = explorer.explore(request);
+            ExploreResult<I,O> result = explorer.explore(request);
             guide.learn(result);
 
             System.out.println("----------");

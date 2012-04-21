@@ -13,6 +13,6 @@ import java.util.List;
 
 //Explorer actually perform state exploration with respect to query
 public interface Explorer<I extends Comparable<I>, O extends Comparable<O>> {
-    public List<ExploreResult<I,O>> explore(ExploreRequest<I> request);
+    public ExploreResult<I,O> explore(final ExploreRequest<I> request);
     public CList<I> getIdleMachineState();
 }

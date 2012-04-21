@@ -30,7 +30,7 @@ import edu.berkeley.wtchoi.cc.Exploring.ExploreRequest;
 
 public class ExplorerImp implements Explorer<ICommand, Observation> {
 
-    private static int preSearchBound = 3;
+    private static final int preSearchBound = 3;
     private CList<ICommand> currentState;
     private Guide<ICommand,Observation> guide;
 
@@ -46,29 +46,24 @@ public class ExplorerImp implements Explorer<ICommand, Observation> {
         this.guide = guide;
     }
 
-    public List<ExploreResult<ICommand,Observation>> explore(ExploreRequest<ICommand> request) {
+    public ExploreResult<ICommand,Observation> explore(ExploreRequest<ICommand> request) {
         if (request.input == null) return null;
         if (request.input.size() == 0) return null;
 
-        List<ExploreResult<ICommand,Observation>> results = new LinkedList<ExploreResult<ICommand,Observation>>();
 
         if(!request.fromCurrentState){
             for(int i = 0 ; i < preSearchBound ; i++){
                 if(controller.isStopState()) break;
-                results.add(go(guide.recommand(currentState)));
+                ExploreResult<ICommand,Observation> result = go(guide.recommand(currentState));
+                guide.learn(result);
             }
             controller.restartApp();
             currentState.clear();
         }
 
-        results.add(go(request.input));
-        return results;
-    }
-
-    private ExploreResult<ICommand,Observation> go(ICommand input){
-        CVector<ICommand> tmp = new CVector<ICommand>();
-        tmp.add(input);
-        return go(tmp);
+        ExploreResult<ICommand,Observation> result =  go(request.input);
+        result.query = request;
+        return result;
     }
 
     private ExploreResult<ICommand,Observation> go(CList<ICommand> input){
@@ -104,7 +99,7 @@ public class ExplorerImp implements Explorer<ICommand, Observation> {
     }
 
     public CList<ICommand> getIdleMachineState(){
-        return currentState;
+        return new CVector<ICommand>(currentState);
     }
 
     public boolean init() {

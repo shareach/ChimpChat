@@ -13,8 +13,14 @@ public class ExploreRequest<I extends Comparable<I>> {
     public boolean fromCurrentState;
     public CList<I> input;
 
-    public ExploreRequest(boolean flag, CList<I> r){
+    public CList<I> sut;
+    public CList<I> suffix;
+
+    public ExploreRequest(boolean flag, CList<I> r, CList<I> sut, CList<I> suffix){
         fromCurrentState = flag;
         input = r;
+
+        this.sut = sut;
+        this.suffix = suffix;
     }
 }
