@@ -1,6 +1,7 @@
-package edu.berkeley.wtchoi.cc.learnerImp;
+package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
+import edu.berkeley.wtchoi.cc.learnerImp.Observation;
 import edu.berkeley.wtchoi.cc.util.GraphViz;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.CVector;
@@ -29,17 +30,11 @@ public class CTree{
         leafSet = new TreeSet<CNode>();
         this.defaultPalette = defaultPalette;
 
-        root = makeNode(initialPalette,0);
+        root = new CNode();
+        root.palette = initialPalette;
+        root.depth = 0;
+        leafSet.add(root);
         extend(root);
-    }
-
-    private CNode makeNode(CSet<ICommand> palette, int depth){
-        CNode n = new CNode();
-        n.palette = palette;
-        n.depth = depth;
-
-        leafSet.add(n);
-        return n;
     }
 
     public CNode makeNode(CNode p, ICommand i){
@@ -56,10 +51,6 @@ public class CTree{
         return n;
     }
 
-    private CNode getNode(List<ICommand> ilst){
-        return getNode(root,ilst);
-    }
-
     private CNode getNode(CNode startingNode, List<ICommand> ilst){
         CNode cur = startingNode;
         for(ICommand i: ilst){
@@ -69,11 +60,7 @@ public class CTree{
         return cur;
     }
 
-    public void addPath(List<ICommand> ilst, List<Observation> olst){
-        addPathImp(root, ilst, olst);
-    }
-
-    public void addPath(State startingState, List<ICommand> ilst, List<Observation> olst){
+    public void addPath(CState startingState, List<ICommand> ilst, List<Observation> olst){
         addPathImp(startingState.node, ilst, olst);
     }
 
@@ -132,11 +119,7 @@ public class CTree{
         return leafSet;
     }
 
-    public CList<ICommand> tryPruning(List<ICommand> ilst){
-        return tryPruningImp(getNode(ilst));
-    }
-
-    public CList<ICommand> tryPruning(State startingState, List<ICommand> ilst){
+    public CList<ICommand> tryPruning(CState startingState, List<ICommand> ilst){
         return tryPruningImp(getNode(startingState.node, ilst));
     }
 
@@ -191,6 +174,10 @@ public class CTree{
         if(temporalFlag) remove(target);
     }
 
+    void split(CNode node){
+        node.mergeTo = null;
+    }
+
     private void remove(CNode n){
         if(n.isMerged()) return;
         leafSet.remove(n);
@@ -198,36 +185,36 @@ public class CTree{
             remove(ch.getFirst());
     }
 
-    //State generators
-    public State getInitState(){
-        return new State(root, null,this);
+    //CState generators
+    public CState getInitState(){
+        return new CState(root, null,this);
     }
 
-    public State getState(CList<ICommand> i){
-        return new State(null, i, this);
+    public CState getState(CList<ICommand> i){
+        return new CState(null, i, this);
     }
 
-    public State getState(State s, CList<ICommand> input){
+    public CState getState(CState s, CList<ICommand> input){
         CVector<ICommand> tmp = new CVector<ICommand>();
         tmp.addAll(s.input);
         tmp.addAll(input);
-        return new State(s.node,tmp,this);
+        return new CState(s.node,tmp,this);
     }
 
-    public State getState(State s, ICommand cmd){
+    public CState getState(CState s, ICommand cmd){
         CVector<ICommand> input = new CVector<ICommand>();
         input.add(cmd);
         return getState(s,input);
     }
 
     //Utility Functions
-    public CSet<ICommand> getPalette(State state){
+    public CSet<ICommand> getPalette(CState state){
         state.normalize();
         if(state.input.isEmpty()) return state.node.palette;
         return null;
     }
 
-    public Observation getTransition(State state, ICommand cmd){
+    public Observation getTransition(CState state, ICommand cmd){
         state.normalize();
         CNode n = state.node;
 
@@ -237,7 +224,7 @@ public class CTree{
 
     }
 
-    public CList<Observation> getTransition(State state, CList<ICommand> input){
+    public CList<Observation> getTransition(CState state, CList<ICommand> input){
         state.normalize();
         if(leafSet.contains(state.node) && !input.isEmpty()) return null;
 
@@ -251,7 +238,7 @@ public class CTree{
         return output;
     }
 
-    public boolean checkPossible(State state, CList<ICommand> input){
+    public boolean checkPossible(CState state, CList<ICommand> input){
         state.normalize();
         if(leafSet.contains(state.node) && !input.isEmpty()) return false;
 
@@ -263,7 +250,7 @@ public class CTree{
         return true;
     }
 
-    public boolean visited(State state, CList<ICommand> input){
+    public boolean visited(CState state, CList<ICommand> input){
         state.normalize();
         if(leafSet.contains(state.node)) return false;
         if(input.isEmpty()) return true;
@@ -271,7 +258,7 @@ public class CTree{
     }
 
     //Assume input state is visited
-    public CList<ICommand> recommendNext(State state){
+    public CList<ICommand> recommendNext(CState state){
         state.normalize();
         if(leafSet.contains(state.node)) return null;
 

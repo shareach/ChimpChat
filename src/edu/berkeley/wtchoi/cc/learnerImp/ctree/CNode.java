@@ -1,6 +1,8 @@
-package edu.berkeley.wtchoi.cc.learnerImp;
+package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
+import edu.berkeley.wtchoi.cc.learnerImp.Observation;
+import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.Pair;
 
@@ -14,7 +16,7 @@ import java.util.TreeMap;
  * Time: 10:16 PM
  * To change this template use File | Settings | File Templates.
  */
-public class CNode implements Comparable<CNode> {
+class CNode implements Comparable<CNode> {
     protected static Integer nidset = 0;
 
     final Integer id;
@@ -40,9 +42,9 @@ public class CNode implements Comparable<CNode> {
 
     public int compareTo(CNode target){
         int f = depth.compareTo(target.depth);
-        if(f == 0)
-            return id.compareTo(target.id);
-        return f;
+        if(f != 0) return f;
+
+        return id.compareTo(target.id);
     }
 
     public boolean isAncestorOf(CNode n){

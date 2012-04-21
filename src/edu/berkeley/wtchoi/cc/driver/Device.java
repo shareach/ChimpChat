@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 //1. to provide interface with success/failure return
 //2. to connect device with specific port forwarding
 
-class Device{
+public class Device{
     public class CannotSendCommand extends Exception{}
 
     private static TreeMap<Long, LinkedList<String>> logMap;

@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.learnerImp;
+package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import javax.swing.*;
 

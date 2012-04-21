@@ -30,7 +30,7 @@ import edu.berkeley.wtchoi.cc.Exploring.ExploreRequest;
 
 public class ExplorerImp implements Explorer<ICommand, Observation> {
 
-    private static final int preSearchBound = 3;
+    private static final int preSearchBound = 2;
     private CList<ICommand> currentState;
     private Guide<ICommand,Observation> guide;
 

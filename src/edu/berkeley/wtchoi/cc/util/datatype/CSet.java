@@ -17,7 +17,7 @@ import java.lang.Comparable;
 
 
 //Comparable Set
-public class CSet<T extends Comparable<T>> extends TreeSet<T> implements Set<T>, Comparable<CSet<T>> {
+public class CSet<T extends Comparable<T>> extends TreeSet<T> implements Comparable<CSet<T>> {
     public int compareTo(CSet<T> target) {
         return CollectionUtil.compare(this, target);
     }

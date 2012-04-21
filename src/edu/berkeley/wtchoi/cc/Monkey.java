@@ -44,7 +44,7 @@ public class Monkey {
 
 
 
-//View State Information. We are going to use it as output character
+//View CState Information. We are going to use it as output character
 /*
 class ViewState implements Comparable<ViewState>{
 

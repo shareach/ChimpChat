@@ -1,10 +1,8 @@
-package edu.berkeley.wtchoi.cc.learnerImp;
+package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.util.datatype.CList;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.CVector;
-import edu.berkeley.wtchoi.cc.learnerImp.CNode;
 
 import java.util.Iterator;
 
@@ -18,24 +16,27 @@ import java.util.Iterator;
  */
 public //Interface for out side
         //----------------------
-class State implements Comparable<State>{
+class CState implements Comparable<CState>{
     CNode node;
     CList<ICommand> input;
 
     CTree ctree;
 
-    State(CNode n, CList<ICommand> i, CTree t){
+    CState(CNode n, CList<ICommand> i, CTree t){
         node = (n == null) ? t.root  : n;
         input = (i == null) ? new CVector<ICommand>() : i;
         ctree = t;
         this.normalize();
     }
 
-    public int compareTo(State st){  //TODO
+    public int compareTo(CState st){  //TODO
         this.normalize();
         st.normalize();
 
-        int f = this.node.compareTo(st.node);
+        int f = Integer.valueOf(this.getDepth()).compareTo(st.getDepth());
+        if(f!=0) return f;
+
+        f = this.node.compareTo(st.node);
         if(f != 0) return f;
 
         return this.input.compareTo(st.input);
@@ -59,8 +60,12 @@ class State implements Comparable<State>{
         this.input = tmp;
     }
 
-    public void mergeTo(State target){
+    public void mergeTo(CState target){
         ctree.doMerge(node, target.node, false);
+    }
+
+    public void split(){
+        ctree.split(node);
     }
 
     public CList<ICommand> getInput(){
@@ -94,7 +99,7 @@ class State implements Comparable<State>{
         return false;
     }
 
-    public boolean isPrefixOf(State target){
+    public boolean isPrefixOf(CState target){
         return node.isAncestorOf(target.node);
     }
 
@@ -131,7 +136,7 @@ class State implements Comparable<State>{
         return node.depth + input.size();
     }
 
-    public State getMergeTo(){
-        return new State(node.mergeTo, null, ctree);
+    public CState getMergeTo(){
+        return new CState(node.mergeTo, null, ctree);
     }
 }
