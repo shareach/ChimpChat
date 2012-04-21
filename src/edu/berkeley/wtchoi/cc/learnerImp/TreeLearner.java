@@ -39,6 +39,10 @@ public class TreeLearner implements Guide<ICommand, Observation> {
     private TreeMap<CState, Integer> observationDegree;
     private final int resumeThreshold = 4;
 
+    private TreeMap<CSet<ICommand>, CSet<CList<ICommand>>> suffixes;
+
+    CState stateOnResume;
+    CState stateOnCompare;
 
     public TreeLearner(CSet<ICommand> initialPalette) {
         defaultPalette = new CSet<ICommand>();
@@ -59,6 +63,8 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         pendingStates = new CSet<CState>();
         observationDegree = new TreeMap<CState, Integer>();
 
+        suffixes = new TreeMap<CSet<ICommand>, CSet<CList<ICommand>>>();
+
         CState initState = ctree.getInitState();
         addToFrontier(initState);
     }
@@ -72,6 +78,7 @@ public class TreeLearner implements Guide<ICommand, Observation> {
 
         CSet<ICommand> palette = ctree.getPalette(s);
         remainedObservations.get(s).add(ExpandToCommand.getVector(1));
+        remainedObservations.get(s).addAll(suffixes.get(palette));
         observationDegree.put(s, 1);
 
         s.setColor("blue");
@@ -98,13 +105,13 @@ public class TreeLearner implements Guide<ICommand, Observation> {
     }
 
     public ExploreRequest<ICommand> getRequest(CList<ICommand> machineState){
-        ExploreRequest<ICommand> request = getQuestionImp(machineState);
+        ExploreRequest<ICommand> request = getRequestImp(machineState);
         updateView();
         return request;
     }
 
     static int count = 0;
-    public ExploreRequest<ICommand> getQuestionImp(CList<ICommand> machineStatePrefix) {
+    public ExploreRequest<ICommand> getRequestImp(CList<ICommand> machineStatePrefix) {
         System.out.println("search round : "+ ++count);
         if(count == 3){
             count = count;
@@ -125,7 +132,7 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         }
 
 
-        if(tryResume()) return getQuestionImp(machineStatePrefix);
+        if(tryResume()) return getRequestImp(machineStatePrefix);
 
         while(!frontiersToBeTested.isEmpty()){
             CState state = pickState(frontiersToBeTested, machineState);
@@ -145,8 +152,11 @@ public class TreeLearner implements Guide<ICommand, Observation> {
     }
 
     private boolean tryResume(){
+        if(stateOnResume != null) return false;
+
         CState resumable = null;
         int degree = 1;
+
         for(CState state : pendingStates){
             degree = observationDegree.get(state);
             if(degree * resumeThreshold < ctree.depth() - state.getDepth()){
@@ -160,12 +170,14 @@ public class TreeLearner implements Guide<ICommand, Observation> {
 
         frontiersToBeTested.add(resumable);
         remainedObservations.get(resumable).add(ExpandToCommand.getVector(degree));
-        resumable.split();
 
-        for(CState state: uniqueStates){
-            uniquesToBeTested.add(state);
-            remainedObservations.get(state).add(ExpandToCommand.getVector(degree));
-        }
+        uniquesToBeTested.add(resumable.getMergeTo());
+        remainedObservations.get(resumable.getMergeTo()).add(ExpandToCommand.getVector(degree));
+
+        stateOnResume = resumable;
+        stateOnCompare = resumable.getMergeTo();
+        pendingStates.remove(resumable);
+        resumable.split();
 
         return true;
     }
@@ -223,9 +235,30 @@ public class TreeLearner implements Guide<ICommand, Observation> {
             frontierStates.remove(state);
             return;
         }
-        int degree = observationDegree.get(state);
+
+        if(stateOnResume.compareTo(state) == 0){
+            frontierStates.remove(state);
+            int degree = observationDegree.get(state);
+            if(checkObservationalEquivalence(stateOnCompare, state, degree)){
+                state.mergeTo(stateOnCompare);
+                pendingStates.add(state);
+            }
+            else{
+                //TODO: get refutation
+                //TODO: add to suffixes
+                //TODO: request update for other uniques and frontier
+                promoteToUnique(state);
+            }
+            stateOnResume = null;
+            stateOnCompare = null;
+            return;
+        }
+        else{
+
+        }
+
         for(CState ustate: uniqueStates){
-            if(checkObservationalEquivalence(ustate, state, degree)){
+            if(checkObservationalEquivalence(ustate, state, 1)){
                 state.mergeTo(ustate);
                 pendingStates.add(state);
                 return;
@@ -234,6 +267,8 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         promoteToUnique(state);
     }
 
+    //TODO: comparison using suffix
+    //TODO: refutation construction
     private boolean checkObservationalEquivalence(CState uniqueState, CState frontierState, int degree){
         if(!checkFullyObserved(uniqueState) || !checkFullyObserved(frontierState))
             throw new RuntimeException("Something is Wrong!");
@@ -242,7 +277,8 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         CSet<ICommand> p2 = ctree.getPalette(frontierState);
         if(p1.compareTo(p2) != 0) return false;
 
-        return checkObservationalEquivalenceImp(uniqueState, p1, frontierState, p2, degree);
+        if(!checkObservationalEquivalenceImp(uniqueState, p1, frontierState, p2, degree)) return false;
+        return true;
     }
 
     private boolean checkObservationalEquivalenceImp(CState s1, CSet<ICommand> p1, CState s2, CSet<ICommand> p2, int degree){
