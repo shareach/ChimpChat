@@ -11,6 +11,8 @@ import edu.berkeley.wtchoi.cc.util.datatype.CList;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.CVector;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.TreeMap;
 
 /**
@@ -238,27 +240,27 @@ public class TreeLearner implements Guide<ICommand, Observation> {
 
         if(stateOnResume.compareTo(state) == 0){
             frontierStates.remove(state);
-            int degree = observationDegree.get(state);
-            if(checkObservationalEquivalence(stateOnCompare, state, degree)){
+            if(checkObservationalEquivalence(stateOnCompare, state)){
                 state.mergeTo(stateOnCompare);
                 pendingStates.add(state);
             }
             else{
-                //TODO: get refutation
-                //TODO: add to suffixes
-                //TODO: request update for other uniques and frontier
+                CSet<CList<ICommand>> refutation = getRefutation();
+                suffixes.get(ctree.getPalette(state)).addAll(refutation);
+                for(CState t : uniqueStates)    remainedObservations.get(t).addAll(refutation);
+                for(CState t : frontierStates)  remainedObservations.get(t).addAll(refutation);
+                for(CState t: pendingStates)    remainedObservations.get(t).addAll(refutation);
+                uniquesToBeTested.addAll(uniqueStates);
+                frontiersToBeTested.addAll(frontierStates);
                 promoteToUnique(state);
             }
             stateOnResume = null;
             stateOnCompare = null;
             return;
         }
-        else{
-
-        }
 
         for(CState ustate: uniqueStates){
-            if(checkObservationalEquivalence(ustate, state, 1)){
+            if(checkObservationalEquivalence(ustate, state)){
                 state.mergeTo(ustate);
                 pendingStates.add(state);
                 return;
@@ -267,11 +269,27 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         promoteToUnique(state);
     }
 
-    //TODO: comparison using suffix
-    //TODO: refutation construction
+    private boolean checkObservationalEquivalence(CState uState, CState fState){
+        int degree = observationDegree.get(fState);
+        if(!checkObservationalEquivalence(uState, fState, degree)) return false;
+        for(CList<ICommand> suffix : suffixes.get(ctree.getPalette(fState))){
+            boolean f1 = ctree.checkPossible(uState, suffix);
+            boolean f2 = ctree.checkPossible(fState, suffix);
+            if(f1 != f2) return false;
+            CList<Observation> o1 = ctree.getTransition(uState, suffix);
+            CList<Observation> o2 = ctree.getTransition(fState, suffix);
+            if(o1.compareTo(o2) != 0) return false;
+        }
+        return true;
+    }
+
+    private Deque<ICommand> counterExample;
+
     private boolean checkObservationalEquivalence(CState uniqueState, CState frontierState, int degree){
         if(!checkFullyObserved(uniqueState) || !checkFullyObserved(frontierState))
             throw new RuntimeException("Something is Wrong!");
+
+        counterExample = new LinkedList<ICommand>();
 
         CSet<ICommand> p1 = ctree.getPalette(uniqueState);
         CSet<ICommand> p2 = ctree.getPalette(frontierState);
@@ -291,33 +309,54 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         if(degree == 2) degree = degree;
 
         for(ICommand cmd: p1){
+            counterExample.push(cmd);
             Observation o1 = ctree.getTransition(s1,cmd);
             Observation o2 = ctree.getTransition(s2,cmd);
             if(!o1.equalsTo(o2)) return false;
+            counterExample.pop();
         }
         for(ICommand cmd: defaultPalette){
+            counterExample.push(cmd);
             Observation o1 = ctree.getTransition(s1,cmd);
             Observation o2 = ctree.getTransition(s2,cmd);
             if(!o1.equalsTo(o2)) return false;
+            counterExample.pop();
         }
 
         if(degree > 1){
             for(ICommand cmd : p1){
+                counterExample.push(cmd);
                 CState ch1 = ctree.getState(s1, cmd);
                 CState ch2 = ctree.getState(s2, cmd);
                 CSet<ICommand> pch1 = ctree.getPalette(ch1);
                 CSet<ICommand> pch2 = ctree.getPalette(ch2);
                 if(! checkObservationalEquivalenceImp(ch1, pch1, ch2, pch2, degree - 1)) return false;
+                counterExample.pop();
             }
             for(ICommand cmd : defaultPalette){
+                counterExample.push(cmd);
                 CState ch1 = ctree.getState(s1, cmd);
                 CState ch2 = ctree.getState(s2, cmd);
                 CSet<ICommand> pch1 = ctree.getPalette(ch1);
                 CSet<ICommand> pch2 = ctree.getPalette(ch2);
                 if(! checkObservationalEquivalenceImp(ch1,pch1, ch2,pch2, degree - 1)) return false;
+                counterExample.pop();
             }
         }
         return true;
+    }
+
+    private CSet<CList<ICommand>> getRefutation(){
+        CSet<CList<ICommand>> refutationSet = new CSet<CList<ICommand>>();
+        for(ICommand cmd : counterExample){
+            for(CList<ICommand> cmdString : refutationSet){
+                cmdString.add(cmd);
+            }
+            CList<ICommand> temp = new CVector<ICommand>();
+            temp.add(cmd);
+            refutationSet.add(temp);
+        }
+        return refutationSet;
     }
 
     public void learn(ExploreResult<ICommand,Observation> result) {
