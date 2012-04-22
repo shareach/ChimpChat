@@ -54,6 +54,8 @@ public class ExplorerImp implements Explorer<ICommand, Observation> {
         if(!request.fromCurrentState){
             for(int i = 0 ; i < preSearchBound ; i++){
                 if(controller.isStopState()) break;
+                CList<ICommand> recommendation = guide.recommand(currentState);
+                if(recommendation == null) break;
                 ExploreResult<ICommand,Observation> result = go(guide.recommand(currentState));
                 guide.learn(result);
             }

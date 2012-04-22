@@ -56,6 +56,8 @@ public class CTree{
         for(ICommand i: ilst){
             if(!cur.children.containsKey(i)) return null;
             cur = cur.children.get(i).fst;
+            if(cur.isMerged() && cur.permanentlyMerged)
+                cur = cur.mergeTo;
         }
         return cur;
     }
@@ -258,13 +260,16 @@ public class CTree{
     }
 
     //Assume input state is visited
+    private static final int recommandThreshold = 3;
     public CList<ICommand> recommendNext(CState state){
         state.normalize();
         if(leafSet.contains(state.node)) return null;
 
         CList<ICommand> inputVector = new CVector<ICommand>();
         for(CNode n : leafSet){
-            if(buildInputPath(state.node, n, inputVector)) return inputVector;
+            if(buildInputPath(state.node, n, inputVector))
+                if(n.depth - state.getDepth() < recommandThreshold)
+                    return inputVector;
             inputVector.clear();
         }
         return null;

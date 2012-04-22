@@ -49,7 +49,7 @@ class CState implements Comparable<CState>{
         Iterator<ICommand> iter = input.iterator();
         while(iter.hasNext() && !ctree.leafSet.contains(n)){
             n = n.children.get(iter.next()).fst;
-            if(n.isMerged()){
+            if(n.isMerged() && n.permanentlyMerged){
                 n = n.mergeTo;
             }
         }
