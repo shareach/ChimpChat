@@ -1,10 +1,15 @@
 https://github.com/wthoi/ChimpChat
 
-Required Files
---------------
-chimpchat.jar
-ddmlib.jar
-guavalib.jar
-sdkilb.jar
+Necessay environment variables
+------------------------------
 
-All four files can be found in "<ANDROID_SDK>/tools/lib" directory.
+
+Dependency
+----------
+  - Android platform-sdk
+  - FROM <ANDROID_SDK>/tools/lib:
+        chimpchat.jar
+        ddmlib.jar
+        guavalib.jar
+        sdkilb.jar
+  - JgraphT in local library directory
