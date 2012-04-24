@@ -58,12 +58,7 @@ import org.icedrobot.daneel.dex.DexReader;
 import org.icedrobot.daneel.dex.Label;
 import org.icedrobot.daneel.dex.Opcode;
 import org.icedrobot.daneel.util.TypeUtil;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
@@ -191,7 +186,7 @@ public class DexRewriter implements DexClassVisitor {
             new IdentityHashMap<Label, Label>();
 
         public MethodRewriter(MethodVisitor mv, boolean isStatic, String desc) {
-            this.mv = new PatchMethodVisitor(mv);
+            this.mv = new PatchMethodVisitor(Opcodes.ASM4, mv);
             this.isStatic = isStatic;
             this.desc = desc;
             this.returnRegisterType = VOID_TYPE;

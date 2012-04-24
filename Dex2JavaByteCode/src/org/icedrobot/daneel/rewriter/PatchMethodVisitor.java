@@ -64,7 +64,7 @@ import org.objectweb.asm.tree.MethodNode;
  * patch mode is activated. After a call to {@link #visitMaxs(int, int)}, the
  * patch mode is deactivated.
  */
-public class PatchMethodVisitor implements MethodVisitor {
+public class PatchMethodVisitor extends MethodVisitor {
     private final MethodVisitor mv;
     private MethodNode methodNode;
 
@@ -72,7 +72,8 @@ public class PatchMethodVisitor implements MethodVisitor {
      * Create a method visitor that can be patched.
      * @param mv the adapted method visitor.
      */
-    public PatchMethodVisitor(MethodVisitor mv) {
+    public PatchMethodVisitor(int api, MethodVisitor mv) {
+        super(api,mv);
         this.mv = mv;
     }
 

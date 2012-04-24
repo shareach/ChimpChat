@@ -95,14 +95,14 @@ class D2JClassConverter extends DexRewriter{
     private void saveClass(byte[] byteCode){
 
         int indexRightBeforeFileName = className.lastIndexOf("/");
-        String subDir = className.substring(1, indexRightBeforeFileName - 1);
+        String subDir = className.substring(1, indexRightBeforeFileName);
         String fileName = className.substring(indexRightBeforeFileName + 1);
         fileName = fileName.replaceFirst(";",".class");
 
-        String classFullName = (subDir + "/" + fileName).replaceAll("/",".");
+        String classFullName = (subDir + "/" + fileName).replaceAll("/",".").replace(".class","");
         System.out.println(className);
         System.out.println(classFullName);
-        //Verifier.verify(null, dexFile, classFullName, byteCode, new PrintWriter(System.err));
+        Verifier.verify(null, dexFile, classFullName, byteCode, new PrintWriter(System.err));
 
         File dir = new File(resultDir, subDir);
         dir.mkdirs();

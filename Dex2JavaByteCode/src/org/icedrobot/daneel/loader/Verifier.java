@@ -89,15 +89,13 @@ import org.icedrobot.daneel.util.TypeUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.EmptyVisitor;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TryCatchBlockNode;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.BasicVerifier;
 import org.objectweb.asm.tree.analysis.Frame;
-import org.objectweb.asm.util.CheckClassAdapter;
-import org.objectweb.asm.util.TraceMethodVisitor;
+import org.objectweb.asm.util.*;
 
 public class Verifier {
     public static void verify(ClassLoader classloader, DexFile dexFile, String className, byte[] bytecode, PrintWriter writer) {
@@ -170,7 +168,7 @@ public class Verifier {
                         return null;
                     }
                     
-                    final MethodRewriter mv = new MethodRewriter(new EmptyVisitor(),
+                    final MethodRewriter mv = new MethodRewriter(EmptyMethodVisitor.get(),
                             (access & Opcodes.ACC_STATIC) != 0,
                             desc);
                     
@@ -443,7 +441,8 @@ public class Verifier {
         writer.println();
         writer.println("--- JVM bytecode");
         Frame[] frames = analyzer.getFrames();
-        TraceMethodVisitor mv = new TraceMethodVisitor();
+        Printer text = new Textifier();
+        TraceMethodVisitor mv = new TraceMethodVisitor(text);
         
         for (int j = 0; j < method.instructions.size(); ++j) {
             method.instructions.get(j).accept(mv);
@@ -467,11 +466,11 @@ public class Verifier {
                 builder.append(' ');
             }
             writer.print(String.format("%05d", j));
-            writer.print(" " + builder + " : " + mv.text.get(j));
+            writer.print(" " + builder + " : " + text.getText().get(j));
         }
         for (int j = 0; j < method.tryCatchBlocks.size(); ++j) {
             ((TryCatchBlockNode)method.tryCatchBlocks.get(j)).accept(mv);
-            writer.print(" " + mv.text.get(j));
+            writer.print(" " + text.getText().get(j));
         }
         writer.println();
     }
