@@ -71,6 +71,7 @@ class D2JClassConverter extends DexRewriter{
     private ClassWriter cv;
     String resultDir;
     DexFile dexFile;
+    String className;
 
     public D2JClassConverter(ClassWriter cv, String resultDir, DexFile dexFile){
         super(cv);
@@ -79,19 +80,29 @@ class D2JClassConverter extends DexRewriter{
         this.dexFile = dexFile;
     }
 
+    @Override
     public void visit(int access, String name, String supername, String[] interfaces){
+        this.className = name;
         super.visit(access, name, supername, interfaces);
-
-        byte[] byteCode = cv.toByteArray();
-        Verifier.verify(null, dexFile, name, byteCode, new PrintWriter(System.err));
-        saveClass(name, byteCode);
     }
 
-    private void saveClass(String name, byte[] byteCode){
-        int indexRightBeforeFileName = name.lastIndexOf("/");
-        String subDir = name.substring(1, indexRightBeforeFileName - 1);
-        String fileName = name.substring(indexRightBeforeFileName + 1);
+    @Override
+    public void visitEnd(){
+        byte[] byteCode = cv.toByteArray();
+        saveClass(byteCode);
+    }
+
+    private void saveClass(byte[] byteCode){
+
+        int indexRightBeforeFileName = className.lastIndexOf("/");
+        String subDir = className.substring(1, indexRightBeforeFileName - 1);
+        String fileName = className.substring(indexRightBeforeFileName + 1);
         fileName = fileName.replaceFirst(";",".class");
+
+        String classFullName = (subDir + "/" + fileName).replaceAll("/",".");
+        System.out.println(className);
+        System.out.println(classFullName);
+        //Verifier.verify(null, dexFile, classFullName, byteCode, new PrintWriter(System.err));
 
         File dir = new File(resultDir, subDir);
         dir.mkdirs();
