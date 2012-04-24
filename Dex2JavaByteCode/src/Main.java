@@ -10,6 +10,7 @@ import org.icedrobot.daneel.dex.DexClassVisitor;
 import org.icedrobot.daneel.dex.DexFile;
 import org.icedrobot.daneel.dex.DexFileVisitor;
 import org.icedrobot.daneel.dex.DexReader;
+import org.icedrobot.daneel.loader.Verifier;
 import org.icedrobot.daneel.rewriter.DexRewriter;
 import org.objectweb.asm.ClassWriter;
 
@@ -17,12 +18,15 @@ import java.io.*;
 
 public class Main {
     public static void main(String args[]){
-        if(args.length != 1){
-            throw new RuntimeException("Filename required");
-        }
-        DexFile dexFile = loadDexFile(args[0]);
-        D2JFileConverter converter = new D2JFileConverter("/tmp/result24328234");
-        dexFile.accept(converter, DexReader.SKIP_ANNOTATIONS);
+
+        System.setProperty("daneel.verify", "true");
+
+        //if(args.length != 1){
+        //    throw new RuntimeException("Filename required");
+        //}
+        DexFile dexFile = loadDexFile("/tmp/classes.dex");
+        D2JFileConverter converter = new D2JFileConverter("/tmp/result24328234", dexFile);
+        dexFile.accept(converter, DexReader.SKIP_NONE);
         return;
     }
 
@@ -45,15 +49,17 @@ public class Main {
 
 class D2JFileConverter implements DexFileVisitor{
     String resultDir;
+    DexFile dexFile;
 
-    public D2JFileConverter(String resultDir){
+    public D2JFileConverter(String resultDir, DexFile dexFile){
         this.resultDir = resultDir;
+        this.dexFile = dexFile;
         (new File(resultDir)).mkdirs();
     }
 
     @Override
     public DexClassVisitor visitClass(String name){
-        return new D2JClassConverter(new ClassWriter(ClassWriter.COMPUTE_MAXS), resultDir);
+        return new D2JClassConverter(new ClassWriter(ClassWriter.COMPUTE_MAXS), resultDir, dexFile);
     }
 
     public void visitEnd(){
@@ -64,17 +70,20 @@ class D2JFileConverter implements DexFileVisitor{
 class D2JClassConverter extends DexRewriter{
     private ClassWriter cv;
     String resultDir;
+    DexFile dexFile;
 
-    public D2JClassConverter(ClassWriter cv, String resultDir){
+    public D2JClassConverter(ClassWriter cv, String resultDir, DexFile dexFile){
         super(cv);
         this.cv = cv;
         this.resultDir = resultDir;
+        this.dexFile = dexFile;
     }
 
     public void visit(int access, String name, String supername, String[] interfaces){
         super.visit(access, name, supername, interfaces);
 
         byte[] byteCode = cv.toByteArray();
+        Verifier.verify(null, dexFile, name, byteCode, new PrintWriter(System.err));
         saveClass(name, byteCode);
     }
 
