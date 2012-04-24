@@ -31,7 +31,7 @@ public abstract class ICommand implements Comparable<ICommand>{
         channel.sendPacket(ack);
 
         //2. Minor sleep
-        E.sleep(100);
+        //E.sleep(100);
 
         //3. Wait for App Supervisor response
         DriverPacket receivingPacket;

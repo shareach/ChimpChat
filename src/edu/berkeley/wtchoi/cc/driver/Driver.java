@@ -79,8 +79,9 @@ public class Driver<TransitionInfo>{
         {
             DriverPacket packet = channel.receivePacket();
             if (packet.getType() != DriverPacket.Type.AckStable) {
-                //throw new RuntimeException("Application sent wrong packet. AckStable expected");
-                return false;
+                System.out.println("received packet:" + packet.getType());
+                throw new RuntimeException("Application sent wrong packet. AckStable expected");
+                //return false;
             }
 
             justRestarted = true;

@@ -107,6 +107,7 @@ public class ExplorerImp implements Explorer<ICommand, Observation> {
     public boolean init() {
         //1. Initiate connection with application
         if (!controller.initiateApp()) return false;
+        System.out.println("App initialized");
 
         //2. Warming palette table for initial state
         ViewInfo view = controller.getCurrentView();
