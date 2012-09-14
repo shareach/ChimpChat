@@ -36,7 +36,8 @@ public class FileImage{
 
     private void reloadImage(){
         try{
-            image = ImageIO.read(new java.io.File(path));
+            java.io.File file = new java.io.File(path);
+            image = ImageIO.read(file);
             imageF = filtering();
             delayedScale();
         }
@@ -58,7 +59,6 @@ public class FileImage{
         }
         return imageS;
     }
-
 
     final public ImageIcon getIcon(){
         if(icon == null) icon = new ImageIcon(getImage());

@@ -312,16 +312,16 @@ public class TreeLearner implements Guide<ICommand, Observation> {
 
         System.out.println("(" + s1.toString() + "," + s2.toString() + ")"+ degree);
         if(degree == 0) return true;
+
+        //##DEBUG HOOK
         if(degree == 2) degree = degree;
 
-        for(ICommand cmd: p1){
-            counterExample.push(cmd);
-            Observation o1 = ctree.getTransition(s1,cmd);
-            Observation o2 = ctree.getTransition(s2,cmd);
-            if(!o1.equalsTo(o2)) return false;
-            counterExample.pop();
-        }
-        for(ICommand cmd: defaultPalette){
+        CSet<ICommand> commands = new CSet<ICommand>();
+        commands.addAll(p1);
+        commands.addAll(defaultPalette);
+
+        //First check whether next states has same view or not
+        for(ICommand cmd: commands){
             counterExample.push(cmd);
             Observation o1 = ctree.getTransition(s1,cmd);
             Observation o2 = ctree.getTransition(s2,cmd);
@@ -329,27 +329,26 @@ public class TreeLearner implements Guide<ICommand, Observation> {
             counterExample.pop();
         }
 
+        //Then, check whether two state has same observational behavior
         if(degree > 1){
-            for(ICommand cmd : p1){
+            for(ICommand cmd : commands){
                 counterExample.push(cmd);
                 CState ch1 = ctree.getState(s1, cmd);
                 CState ch2 = ctree.getState(s2, cmd);
-                CSet<ICommand> pch1 = ctree.getPalette(ch1);
-                CSet<ICommand> pch2 = ctree.getPalette(ch2);
-                if(! checkObservationalEquivalenceImp(ch1, pch1, ch2, pch2, degree - 1)) return false;
-                counterExample.pop();
-            }
-            for(ICommand cmd : defaultPalette){
-                counterExample.push(cmd);
-                CState ch1 = ctree.getState(s1, cmd);
-                CState ch2 = ctree.getState(s2, cmd);
-                CSet<ICommand> pch1 = ctree.getPalette(ch1);
-                CSet<ICommand> pch2 = ctree.getPalette(ch2);
-                if(! checkObservationalEquivalenceImp(ch1,pch1, ch2,pch2, degree - 1)) return false;
+                //Skip if transitions for both state are self loop
+                if(!(isSelfLoop(s1,ch1) && isSelfLoop(s2,ch2))){
+                    CSet<ICommand> pch1 = ctree.getPalette(ch1);
+                    CSet<ICommand> pch2 = ctree.getPalette(ch2);
+                    if(! checkObservationalEquivalenceImp(ch1, pch1, ch2, pch2, degree - 1)) return false;
+                }
                 counterExample.pop();
             }
         }
         return true;
+    }
+
+    private boolean isSelfLoop(CState s1, CState s2){
+        return s1.compareTo(s2) == 0;
     }
 
     private CSet<CList<ICommand>> getRefutation(){
@@ -398,7 +397,7 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         updateView();
     }
 
-    public CList<ICommand> recommand(CList<ICommand> statePrefix){
+    public CList<ICommand> recommend(CList<ICommand> statePrefix){
         return ctree.recommendNext(ctree.getState(statePrefix));
     }
 

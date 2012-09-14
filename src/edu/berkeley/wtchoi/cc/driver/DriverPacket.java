@@ -123,54 +123,31 @@ public class DriverPacket implements Serializable{
 
 
     public static enum Type {
-        Ack{
-            public String toString(){
-                return "Ack";
-            }
-        },
-
-        // DriverPacket from IDriver
-        AckCommand{
-            public String toString(){
-                return "AckCommand";
-            }
-        },
-
-        RequestView{
-            public String toString(){
-                return "ReqeustView";
-            }
-        },
-
-        RequestTI{
-            public String toString(){
-                return "RequestTI";
-            }
-        },
-
-        SetOptions{
-            public String toString(){
-                return "SetOptions";
-            }
-        },
-
-        Reset{
-            public String toString(){
-                return "Reset";
-            }
-        },
-
-        EnterEditText{
-            public String toString(){
-                return "EnterEditTEct";
-            }
-        },
+        Ack("Ack"),
+        AckCommand("AckCommand"),
+        RequestView("RequestView"),
+        RequestTI("RequestTI"),
+        SetOptions("SetOptions"),
+        Reset("Reset"),
+        EnterEditText("EnterEditText"),
 
         // DriverPacket from Application
-        AckStable   { public String toString(){ return "AckStack"; }},
-        ViewInfo    { public String toString(){ return "ViewInfo"; }},
-        TI          { public String toString(){ return "TransitionInfo"; }},
-        AckStop     { public String toString(){ return "AckStop"; }};
+        AckStable("AckStack"),
+        ViewInfo("viewInfo"),
+        TI("TransitionInfo"),
+        AckStop("AckStop");
+
+        final String name;
+
+        private Type(String string){
+            this.name = string;
+        }
+
+        @Override
+        public String toString(){
+            return name;
+        }
+
     }
 
 }

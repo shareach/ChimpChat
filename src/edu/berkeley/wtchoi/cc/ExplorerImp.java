@@ -11,8 +11,6 @@ import edu.berkeley.wtchoi.cc.driver.ViewInfo.PointFactory;
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
 import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
 
-import java.util.List;
-import java.util.LinkedList;
 import edu.berkeley.wtchoi.cc.util.datatype.CSet;
 import edu.berkeley.wtchoi.cc.util.datatype.CVector;
 import edu.berkeley.wtchoi.cc.util.datatype.CList;
@@ -54,9 +52,9 @@ public class ExplorerImp implements Explorer<ICommand, Observation> {
         if(!request.fromCurrentState){
             for(int i = 0 ; i < preSearchBound ; i++){
                 if(controller.isStopState()) break;
-                CList<ICommand> recommendation = guide.recommand(currentState);
+                CList<ICommand> recommendation = guide.recommend(currentState);
                 if(recommendation == null) break;
-                ExploreResult<ICommand,Observation> result = go(guide.recommand(currentState));
+                ExploreResult<ICommand,Observation> result = go(guide.recommend(currentState));
                 guide.learn(result);
             }
             controller.restartApp();

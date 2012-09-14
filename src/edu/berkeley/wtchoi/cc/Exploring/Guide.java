@@ -15,5 +15,5 @@ import java.util.List;
 public interface Guide<I extends Comparable<I>, O extends Comparable<O>> {
     public ExploreRequest<I> getRequest(CList<I> currentMachineState);
     public void learn(ExploreResult<I,O> report);
-    public CList<ICommand> recommand(CList<I> currentMachineState);
+    public CList<ICommand> recommend(CList<I> currentMachineState);
 }

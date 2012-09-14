@@ -131,13 +131,25 @@ public class CTree{
             return null;
 
         CSet<CNode> candidates = new CSet<CNode>();
-        candidates.add(target.parent);
+        candidates.add(target);
+
+        //initialize
+        //if(! target.tiFromParent.didNothing()) return null;
+        //CSet<CNode> candidates = new CSet<CNode>();
+        //candidates.add(target.parent);
 
         CSet<CNode> candidates2 = new CSet<CNode>();
+        //for(Pair<CNode,Observation> ch: target.parent.children.values()){
+        //    if(ch.fst.id == target.id || leafSet.contains(ch.fst)) continue;
+        //    if(ch.fst.tiFromParent.didNothing() && ! (ch.fst.isMerged()))
+        //        candidates2.add(ch.fst);
+        //}
 
+
+        //check trough ancestor
         while(!candidates.isEmpty()){
             CNode candidate = candidates.pollFirst();
-            if(candidate.palette.compareTo(target.palette) == 0){
+            if(candidate.compareTo(target) != 0 &&  candidate.palette.compareTo(target.palette) == 0){
                 doMerge(target, candidate,true);
                 buildInputPath(candidate, rlst);
                 return rlst;
@@ -145,6 +157,7 @@ public class CTree{
 
             if(candidate.parent != null && candidate.tiFromParent.didNothing()){
                 candidates.add(candidate.parent);
+                //add other descendant of ancestors
                 for(Pair<CNode,Observation> ch: candidate.parent.children.values()){
                     if(ch.fst.id == candidate.id || leafSet.contains(ch.fst)) continue;
                     if(ch.fst.tiFromParent.didNothing() && ! (ch.fst.isMerged()))

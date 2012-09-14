@@ -24,6 +24,11 @@ package edu.berkeley.wtchoi.cc.util;
  ******************************************************************************
  */
 
+/*
+ * I slightly modified the source code to make it JAR
+ * 2011.12.08, Philip Wontae Choi
+ */
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
@@ -97,7 +102,8 @@ public class GraphViz
      * @return Source of the graph in dot language.
      */
     public String getDotSource() {
-        return graph.toString();
+        String s = graph.toString();
+        return s;
     }
 
     /**
@@ -283,4 +289,12 @@ public class GraphViz
         this.graph = sb;
     }
 
+
+    public static void setDOT(String dir){
+        DOT = dir;
+    }
+
+    public static void setTEMP_DIR(String dir){
+        TEMP_DIR = dir;
+    }
 } // end of class GraphViz
