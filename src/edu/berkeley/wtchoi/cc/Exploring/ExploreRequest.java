@@ -7,7 +7,7 @@ package edu.berkeley.wtchoi.cc.Exploring;
  * Time: 4:40 PM
  * To change this template use File | Settings | File Templates.
  */
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
+import edu.berkeley.wtchoi.collection.CList;
 
 public class ExploreRequest<I extends Comparable<I>> {
     public boolean fromCurrentState;

@@ -7,9 +7,9 @@ import edu.berkeley.wtchoi.cc.driver.PushCommand;
 import edu.berkeley.wtchoi.cc.Exploring.Guide;
 import edu.berkeley.wtchoi.cc.learnerImp.ctree.CState;
 import edu.berkeley.wtchoi.cc.learnerImp.ctree.CTree;
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-import edu.berkeley.wtchoi.cc.util.datatype.CVector;
+import edu.berkeley.wtchoi.collection.CList;
+import edu.berkeley.wtchoi.collection.CSet;
+import edu.berkeley.wtchoi.collection.CVector;
 
 import java.util.Deque;
 import java.util.LinkedList;

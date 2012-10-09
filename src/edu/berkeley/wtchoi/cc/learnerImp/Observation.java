@@ -1,7 +1,8 @@
 package edu.berkeley.wtchoi.cc.learnerImp;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
+import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
+import edu.berkeley.wtchoi.collection.CSet;
 
 /**
  * Created with IntelliJ IDEA.

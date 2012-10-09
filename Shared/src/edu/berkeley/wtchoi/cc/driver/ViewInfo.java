@@ -1,6 +1,6 @@
 package edu.berkeley.wtchoi.cc.driver;
 
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
+import edu.berkeley.wtchoi.collection.CSet;
 
 import java.lang.Comparable;
 import java.io.Serializable;

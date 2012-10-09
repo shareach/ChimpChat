@@ -1,7 +1,7 @@
 package edu.berkeley.wtchoi.cc.driver;
 
 import edu.berkeley.wtchoi.cc.util.E;
-import edu.berkeley.wtchoi.cc.util.TcpChannel;
+import edu.berkeley.wtchoi.util.TcpChannel;
 import edu.berkeley.wtchoi.cc.driver.DriverPacket.OptionIndex;
 
 import java.util.*;

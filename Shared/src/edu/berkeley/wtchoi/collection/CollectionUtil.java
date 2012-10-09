@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.util.datatype;
+package edu.berkeley.wtchoi.collection;
 
 import java.io.IOException;
 import java.io.StringWriter;

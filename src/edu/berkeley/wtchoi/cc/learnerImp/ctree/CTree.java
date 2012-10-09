@@ -3,10 +3,10 @@ package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
 import edu.berkeley.wtchoi.cc.util.GraphViz;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-import edu.berkeley.wtchoi.cc.util.datatype.CVector;
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
-import edu.berkeley.wtchoi.cc.util.datatype.Pair;
+import edu.berkeley.wtchoi.collection.CSet;
+import edu.berkeley.wtchoi.collection.CVector;
+import edu.berkeley.wtchoi.collection.CList;
+import edu.berkeley.wtchoi.collection.Pair;
 
 import javax.swing.*;
 import java.util.*;

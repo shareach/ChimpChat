@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.learnerImp;
+package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import java.io.Serializable;
 
@@ -12,6 +12,8 @@ import java.io.Serializable;
 
 public class TransitionInfo implements Serializable
 {
+    private static final long serialVersionUID = -5186309675577891457L;
+
     private boolean didNothing = false;
 
     public void setDidNothing (boolean f){

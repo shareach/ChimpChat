@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.util.datatype;
+package edu.berkeley.wtchoi.collection;
 
 /**
  * Created with IntelliJ IDEA.

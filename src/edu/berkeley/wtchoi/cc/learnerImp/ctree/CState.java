@@ -1,8 +1,8 @@
 package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
-import edu.berkeley.wtchoi.cc.util.datatype.CVector;
+import edu.berkeley.wtchoi.collection.CList;
+import edu.berkeley.wtchoi.collection.CVector;
 
 import java.util.Iterator;
 

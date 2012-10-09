@@ -5,11 +5,11 @@ import edu.berkeley.wtchoi.cc.driver.DriverOption;
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.learnerImp.TreeLearner;
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
-import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
+import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
 import edu.berkeley.wtchoi.cc.Exploring.*;
-import edu.berkeley.wtchoi.cc.util.Logger;
-import edu.berkeley.wtchoi.cc.util.LoggerImp;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
+import edu.berkeley.wtchoi.logger.Logger;
+import edu.berkeley.wtchoi.logger.LoggerImp;
+import edu.berkeley.wtchoi.collection.CSet;
 
 
 public class Monkey {

@@ -2,11 +2,10 @@ package edu.berkeley.wtchoi.cc.learnerImp;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.driver.Driver;
-import edu.berkeley.wtchoi.cc.learnerImp.ctree.CState;
 import edu.berkeley.wtchoi.cc.util.IdentifierPool;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
-import edu.berkeley.wtchoi.cc.util.datatype.CVector;
+import edu.berkeley.wtchoi.collection.CSet;
+import edu.berkeley.wtchoi.collection.CList;
+import edu.berkeley.wtchoi.collection.CVector;
 
 /**
  * Created with IntelliJ IDEA.

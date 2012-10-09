@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.util;
+package edu.berkeley.wtchoi.logger;
 
 /**
  * Created with IntelliJ IDEA.

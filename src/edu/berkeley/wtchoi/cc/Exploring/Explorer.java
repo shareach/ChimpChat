@@ -1,7 +1,6 @@
 package edu.berkeley.wtchoi.cc.Exploring;
 
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
-import java.util.List;
+import edu.berkeley.wtchoi.collection.CList;
 
 /**
  * Created by IntelliJ IDEA.

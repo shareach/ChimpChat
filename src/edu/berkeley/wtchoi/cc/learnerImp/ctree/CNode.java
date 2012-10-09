@@ -2,9 +2,8 @@ package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
-import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-import edu.berkeley.wtchoi.cc.util.datatype.Pair;
+import edu.berkeley.wtchoi.collection.CSet;
+import edu.berkeley.wtchoi.collection.Pair;
 
 import java.util.Map;
 import java.util.TreeMap;

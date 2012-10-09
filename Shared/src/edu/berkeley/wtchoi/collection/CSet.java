@@ -1,8 +1,7 @@
-package edu.berkeley.wtchoi.cc.util.datatype;
+package edu.berkeley.wtchoi.collection;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.Collection;
 import java.lang.Comparable;

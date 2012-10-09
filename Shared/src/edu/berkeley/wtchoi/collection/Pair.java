@@ -1,4 +1,4 @@
-package edu.berkeley.wtchoi.cc.util.datatype;
+package edu.berkeley.wtchoi.collection;
 
 //generic pair
 //code from http://www.factsandpeople.com/facts-mainmenu-5/8-java/10-java-pair-class?start=1

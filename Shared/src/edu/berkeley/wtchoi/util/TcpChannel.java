@@ -1,9 +1,10 @@
-package edu.berkeley.wtchoi.cc.util;
+package edu.berkeley.wtchoi.util;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import edu.berkeley.wtchoi.logger.*;
 
 /**
  * Created with IntelliJ IDEA.

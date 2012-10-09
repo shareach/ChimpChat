@@ -9,11 +9,11 @@ import edu.berkeley.wtchoi.cc.driver.ViewInfo;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo.PointFactory;
 
 import edu.berkeley.wtchoi.cc.learnerImp.Observation;
-import edu.berkeley.wtchoi.cc.learnerImp.TransitionInfo;
+import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
 
-import edu.berkeley.wtchoi.cc.util.datatype.CSet;
-import edu.berkeley.wtchoi.cc.util.datatype.CVector;
-import edu.berkeley.wtchoi.cc.util.datatype.CList;
+import edu.berkeley.wtchoi.collection.CSet;
+import edu.berkeley.wtchoi.collection.CVector;
+import edu.berkeley.wtchoi.collection.CList;
 import edu.berkeley.wtchoi.cc.Exploring.ExploreRequest;
 
 
