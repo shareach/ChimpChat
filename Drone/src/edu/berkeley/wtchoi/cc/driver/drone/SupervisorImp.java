@@ -20,13 +20,54 @@ import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
 import edu.berkeley.wtchoi.util.TcpChannel;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
 class SupervisorImp extends Thread{
 
-    LinkedList<SLog> sList;
-    LinkedList<SLog> sStack;
+    HashMap<Long, LinkedList<SLog>> sLists;
+    HashMap<Long, LinkedList<SLog>> sStacks;
+    HashSet<Long> threads;
+    long mainTid;
+
+    private void checkInit(){
+        long tid = Thread.currentThread().getId();
+
+        boolean flag = threads.contains(tid);
+        if(flag) return;
+
+        LinkedList<SLog> list = new LinkedList<SLog>();
+        LinkedList<SLog> stack = new LinkedList<SLog>();
+        sLists.put(tid, list);
+        sStacks.put(tid, stack);
+
+    }
+
+    private void pushToList(SLog slog){
+        checkInit();
+        long tid = Thread.currentThread().getId();
+        sLists.get(tid).add(slog);
+    }
+
+    private void pushToBoth(SLog slog){
+        checkInit();
+        long tid = Thread.currentThread().getId();
+        sStacks.get(tid).add(slog);
+        sLists.get(tid).add(slog);
+    }
+
+    private void popFromStack(){
+        checkInit();
+        long tid = Thread.currentThread().getId();
+        sStacks.get(tid).removeLast();
+    }
+
+    private SLog getStackTop(){
+        checkInit();
+        long tid = Thread.currentThread().getId();
+        return sStacks.get(tid).getLast();
+    }
 
     private int tickcount = 0;
 
@@ -56,8 +97,12 @@ class SupervisorImp extends Thread{
     public void init(Activity defaultActivity){
         //If this is first execution of application,
         //initialize supervisor
-        sList = new LinkedList<SLog>();
-        sStack = new LinkedList<SLog>();
+        sLists = new HashMap<Long, LinkedList<SLog>>();
+        sStacks = new HashMap<Long, LinkedList<SLog>>();
+        mainTid = Thread.currentThread().getId();
+        sLists.put(mainTid, new LinkedList<SLog>());
+        sStacks.put(mainTid, new LinkedList<SLog>());
+
         activityStates = new HashMap<Activity,ActivityState>();
 
         Application app = defaultActivity.getApplication();
@@ -92,17 +137,19 @@ class SupervisorImp extends Thread{
 
             //Check whether App is active or note
             //finish this round, if App is inactive
-            if(activeActivity == null){
-                state.onStop();
-            }
+            synchronized (sLists){
+                if(activeActivity == null){
+                    state.onStop();
+                }
 
-            if(tickcount == 0){
-                this.state.work();
-                this.state = state.next();
-                tickcount = TICKCOUNT;
-            }
-            else{
-                tickcount--;
+                if(tickcount == 0){
+                    this.state.work();
+                    this.state = state.next();
+                    tickcount = TICKCOUNT;
+                }
+                else{
+                    tickcount--;
+                }
             }
         }
     }
@@ -135,7 +182,9 @@ class SupervisorImp extends Thread{
     }
 
     private void snooze(){
-        tickcount = (tickcount > TICKSNOOZE) ? tickcount : TICKSNOOZE;
+        synchronized (sLists){
+            tickcount = (tickcount > TICKSNOOZE) ? tickcount : TICKSNOOZE;
+        }
     }
 
     private Activity getCurrentActivity(){
@@ -154,31 +203,28 @@ class SupervisorImp extends Thread{
         return screen_y;
     }
 
-    public int logEnter(int fid){
-        synchronized(sList){
-            SLog log = SLog.getEnter(fid);
-            sList.add(log);
-            sStack.add(log);
-        }
-        snooze();
-        return fid;
-    }
-
-    public void logReceiver(Object obj, int fid){
-        synchronized (sList){
-            sList.add(SLog.getReceiver(obj.hashCode(), fid));
+    public synchronized void logEnter(int fid){
+        synchronized (sLists){
+            pushToBoth(SLog.getEnter(fid));
             snooze();
         }
     }
 
-    public void logExit(int fid){
-        synchronized(sList){
+    public synchronized void logReceiver(Object obj, int fid){
+        synchronized (sLists){
+            pushToList(SLog.getReceiver(obj.hashCode(), fid));
+            snooze();
+        }
+    }
+
+    public synchronized void logExit(int fid){
+        synchronized (sLists){
             SLog log = SLog.getExit(fid);
-            sList.add(log);
+            pushToList(log);
 
-            SLog stackTop = sStack.getLast();
+            SLog stackTop = getStackTop();
             if(stackTop.type == SLog.ENTER && stackTop.fid == fid){
-                sStack.removeLast();
+                popFromStack();
             }
             else{
                 Log.d("wtchoi","stack top:"+stackTop.toString());
@@ -190,14 +236,14 @@ class SupervisorImp extends Thread{
         }
     }
 
-    public void logUnroll(int fid){
-        synchronized(sList){
+    public synchronized void logUnroll(int fid){
+        synchronized (sLists){
             SLog log = SLog.getUnroll(fid);
-            sList.add(log);
+            pushToList(log);
 
-            SLog stackTop = sStack.getLast();
+            SLog stackTop = getStackTop();
             if(stackTop.type == SLog.ENTER && stackTop.fid == fid){
-                sStack.removeLast();
+                popFromStack();
             }
             else{
                 Log.d("wtchoi","stack top:"+stackTop.toString());
@@ -209,23 +255,22 @@ class SupervisorImp extends Thread{
         }
     }
 
-    public void logCall(int fid){
-        synchronized(sList){
+    public synchronized void logCall(int fid){
+        synchronized (sLists){
             SLog log = SLog.getCall(fid);
-            sList.add(log);
-            sStack.add(log);
+            pushToBoth(log);
             snooze();
         }
     }
 
     public void logReturn(int fid){
-        synchronized(sList){
+        synchronized(sLists){
             SLog log = SLog.getReturn(fid);
-            sList.add(log);
+            pushToList(log);
 
-            SLog stackTop = sStack.getLast();
+            SLog stackTop = getStackTop();
             if(stackTop.type == SLog.CALL && stackTop.fid == fid){
-                sStack.removeLast();
+                popFromStack();
             }
             else{
                 Log.d("wtchoi","stack top:"+stackTop.toString());
@@ -238,26 +283,32 @@ class SupervisorImp extends Thread{
     }
 
     public void logProgramPoint(int pp, int fid){
-        synchronized(sList){
-            sList.add(SLog.getPP(pp, fid));
+        synchronized (sLists){
+            pushToList(SLog.getPP(pp, fid));
             snooze();
         }
     }
 
     public void logActivityCreated(Activity a){
-        activityStates.put(a, new ActivityState());
-        snooze();
+        synchronized (sLists){
+            activityStates.put(a, new ActivityState());
+            snooze();
+        }
     }
 
     public void logStart(Activity a){
-        activityStates.get(a).setActive(true);
-        snooze();
+        synchronized (sLists){
+            activityStates.get(a).setActive(true);
+            snooze();
+        }
     }
 
     public void logStop(Activity a){
-        ActivityState t = activityStates.get(a);
-        t.setActive(false);
-        snooze();
+        synchronized (sLists){
+            ActivityState t = activityStates.get(a);
+            t.setActive(false);
+            snooze();
+        }
     }
 
 
