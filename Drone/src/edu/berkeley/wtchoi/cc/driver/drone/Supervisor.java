@@ -11,18 +11,18 @@ public abstract class Supervisor{
 	 
 	private static SupervisorImp supervisor;
 
-    public static void appInit(Application app, Activity defaultActivity){
-        Supervisor.init(app, defaultActivity);
-        Supervisor.logActivityCreated(defaultActivity);
+    public static void appInit(Activity defaultActivity){
+        Supervisor.init(defaultActivity);
+        //Supervisor.logActivityCreated(defaultActivity);
         Supervisor.clearData();
-        Supervisor.logCall("onCreate", defaultActivity);
+        //Supervisor.logCall("onCreate", defaultActivity);
     }
 
-    public static void appStart(Application app, Activity defaultActivity){
+    public static void appStart(){
         Supervisor.start();
     }
 
-	public static void init(Application app, Activity defaultActivity){
+	private static void init(Activity defaultActivity){
         if(skipmode()) return;
         //If this is first execution of application,
         //initialize supervisor
@@ -34,7 +34,7 @@ public abstract class Supervisor{
 
 		if(supervisor == null){
 			supervisor = new SupervisorImp();
-            supervisor.init(app,defaultActivity);
+            supervisor.init(defaultActivity);
 		}
         else{
             ////If this is not the first run of application,
@@ -56,7 +56,7 @@ public abstract class Supervisor{
         }
 	}
 
-    public static void clearData(){
+    private static void clearData(){
         if(skipmode()) return;
         supervisor.clearData();
     }
@@ -67,19 +67,38 @@ public abstract class Supervisor{
 		supervisor.start();
 	}
 
-	public static void logCall(String f, Object o){
+    public static void logEnter(int fid){
         if(skipmode()) return;
-		supervisor.logCall(f,o);
-        Logger.log("CALL: "+o.toString()+"::"+f);
+        supervisor.logEnter(fid);
+        Logger.log("ENTER: "+ fid);
+    }
+
+    public static void logExit(int fid){
+        if(skipmode()) return;
+        supervisor.logExit(fid);
+        Logger.log("EXIT: " + fid);
+    }
+
+
+    public static void logCall(int fid){
+        if(skipmode()) return;
+		supervisor.logCall(fid);
+        Logger.log("CALL: "+ fid);
 	}
 
 	
-	public static void logReturn(String fname, Object o){
+	public static void logReturn(int fid){
         if(skipmode()) return;
-		supervisor.logReturn(fname,o);
-        Logger.log("RETURN:"+o.toString()+"@"+fname);
+		supervisor.logReturn(fid);
+        Logger.log("RETURN: "+ fid);
 	}
-	
+
+    public static void logReceiver(Object o, int fid){
+        if(skipmode()) return;
+        supervisor.logReceiver(o,fid);
+    }
+
+    /*
 	public static void logTrue(String fname, Object o){
         if(skipmode()) return;
 		supervisor.logTrue(fname,o);
@@ -99,10 +118,11 @@ public abstract class Supervisor{
         if(skipmode()) return;
 		supervisor.logSwitch(sname,o);
 	}
+	*/
 
-    public static void logProgramPoint(String fname, int offset, Object o){
+    public static void logProgramPoint(int ppid, int fid){
         if(skipmode()) return;
-        supervisor.logProgramPoint(fname,offset,o);
+        supervisor.logProgramPoint(ppid, fid);
     }
 
 

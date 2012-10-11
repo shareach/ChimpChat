@@ -12,6 +12,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.graphics.Point;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Display;
 import android.view.WindowManager;
 import edu.berkeley.wtchoi.cc.driver.DriverPacket;
@@ -52,13 +53,14 @@ class SupervisorImp extends Thread{
 
     public SupervisorImp(){}
 
-    public void init(Application app, Activity defaultActivity){
+    public void init(Activity defaultActivity){
         //If this is first execution of application,
         //initialize supervisor
         sList = new LinkedList<SLog>();
         sStack = new LinkedList<SLog>();
         activityStates = new HashMap<Activity,ActivityState>();
 
+        Application app = defaultActivity.getApplication();
         app_wrapper = new ApplicationWrapper(app);
 
         windowManager = defaultActivity.getWindowManager();
@@ -152,27 +154,30 @@ class SupervisorImp extends Thread{
         return screen_y;
     }
 
-
-
-
-
-
-    public void logCall(String fname, Object o){
+    public int logEnter(int fid){
         synchronized(sList){
-            SLog log = new SLog(SLog.CALL,fname,o);
+            SLog log = SLog.getEnter(fid);
             sList.add(log);
             sStack.add(log);
+        }
+        snooze();
+        return fid;
+    }
+
+    public void logReceiver(Object obj, int fid){
+        synchronized (sList){
+            sList.add(SLog.getReceiver(obj.hashCode(), fid));
             snooze();
         }
     }
 
-    public void logReturn(String fname, Object o){
+    public void logExit(int fid){
         synchronized(sList){
-            SLog log = new SLog(SLog.RETURN,fname,o);
+            SLog log = SLog.getExit(fid);
             sList.add(log);
 
             SLog stackTop = sStack.getLast();
-            if(stackTop.type == SLog.CALL && stackTop.obj == o && stackTop.message.equals(fname)){
+            if(stackTop.type == SLog.ENTER && stackTop.fid == fid){
                 sStack.removeLast();
             }
             else{
@@ -185,37 +190,56 @@ class SupervisorImp extends Thread{
         }
     }
 
-    public void logTrue(String fname, Object o){
+    public void logUnroll(int fid){
         synchronized(sList){
-            sList.add(new SLog(SLog.TRUE,fname,o));
+            SLog log = SLog.getUnroll(fid);
+            sList.add(log);
+
+            SLog stackTop = sStack.getLast();
+            if(stackTop.type == SLog.ENTER && stackTop.fid == fid){
+                sStack.removeLast();
+            }
+            else{
+                Log.d("wtchoi","stack top:"+stackTop.toString());
+                Log.d("wtchoi","new log:"+log.toString());
+                Log.d("wtchoi","somethings is wrong! call return mismatch");
+                throw new RuntimeException("stack trace failed!");
+            }
             snooze();
         }
     }
 
-    public void logFalse(String fname, Object o){
+    public void logCall(int fid){
         synchronized(sList){
-            sList.add(new SLog(SLog.FALSE,fname,o));
+            SLog log = SLog.getCall(fid);
+            sList.add(log);
+            sStack.add(log);
             snooze();
         }
     }
 
-    public void logEndIf(String fname, Object o){
-        synchronized (sList){
-            sList.add(new SLog(SLog.ENDIF,fname,o));
+    public void logReturn(int fid){
+        synchronized(sList){
+            SLog log = SLog.getReturn(fid);
+            sList.add(log);
+
+            SLog stackTop = sStack.getLast();
+            if(stackTop.type == SLog.CALL && stackTop.fid == fid){
+                sStack.removeLast();
+            }
+            else{
+                Log.d("wtchoi","stack top:"+stackTop.toString());
+                Log.d("wtchoi","new log:"+log.toString());
+                Log.d("wtchoi","somethings is wrong! call return mismatch");
+                throw new RuntimeException("stack trace failed!");
+            }
             snooze();
         }
     }
 
-    public void logSwitch(String sname, Object o){
+    public void logProgramPoint(int pp, int fid){
         synchronized(sList){
-            sList.add(new SLog(SLog.SWITCH,sname,o));
-            snooze();
-        }
-    }
-
-    public void logProgramPoint(String fname, int offset, Object o){
-        synchronized(sList){
-            sList.add(new SLog(SLog.PP, fname + "::" + String.valueOf(offset), o));
+            sList.add(SLog.getPP(pp, fid));
             snooze();
         }
     }
