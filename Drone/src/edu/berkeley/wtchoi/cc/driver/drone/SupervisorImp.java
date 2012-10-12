@@ -12,7 +12,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.graphics.Point;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Display;
 import android.view.WindowManager;
 import edu.berkeley.wtchoi.cc.driver.DriverPacket;
@@ -41,12 +40,13 @@ class SupervisorImp extends Thread{
         LinkedList<SLog> stack = new LinkedList<SLog>();
         sLists.put(tid, list);
         sStacks.put(tid, stack);
-
+        threads.add(tid);
     }
 
     private void pushToList(SLog slog){
         checkInit();
         long tid = Thread.currentThread().getId();
+        Log.d("wtchoi","tid = " + tid);
         sLists.get(tid).add(slog);
     }
 
@@ -60,13 +60,15 @@ class SupervisorImp extends Thread{
     private void popFromStack(){
         checkInit();
         long tid = Thread.currentThread().getId();
-        sStacks.get(tid).removeLast();
+        LinkedList<SLog> stack = sStacks.get(tid);
+        stack.removeLast();
     }
 
     private SLog getStackTop(){
         checkInit();
         long tid = Thread.currentThread().getId();
-        return sStacks.get(tid).getLast();
+        LinkedList<SLog> stack = sStacks.get(tid);
+        return stack.getLast();
     }
 
     private int tickcount = 0;
@@ -99,9 +101,10 @@ class SupervisorImp extends Thread{
         //initialize supervisor
         sLists = new HashMap<Long, LinkedList<SLog>>();
         sStacks = new HashMap<Long, LinkedList<SLog>>();
+        threads = new HashSet<Long>();
         mainTid = Thread.currentThread().getId();
-        sLists.put(mainTid, new LinkedList<SLog>());
-        sStacks.put(mainTid, new LinkedList<SLog>());
+        Log.d("wtchoi","mainTid = " + mainTid);
+        checkInit();
 
         activityStates = new HashMap<Activity,ActivityState>();
 
