@@ -34,7 +34,7 @@ public class UnstableState extends AbstractState {
 
     //Inspect whether event handler execution is finished or not
     public void work(){
-        Log.d("wtchoi", "Unstable AbstractState");
+        Log.d("wtchoi", "Unstable State");
 
         //We assume that lock all function accessing s.sStack acquire lock of s.sList.
         synchronized (s.sLists){

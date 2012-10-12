@@ -12,7 +12,7 @@ import android.util.Log;
 class InitState extends AbstractState {
     public InitState(SupervisorImp s){ super(s); }
     public void work(){
-        Log.d("wtchoi", "Init AbstractState");
+        Log.d("wtchoi", "Init State");
     }
 
     public AbstractState next(){ return new UnstableState(s); }

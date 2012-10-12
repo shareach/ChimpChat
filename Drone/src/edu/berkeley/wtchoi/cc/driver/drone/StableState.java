@@ -30,7 +30,7 @@ public class StableState extends AbstractState {
     }
 
     public void work(){
-        Log.d("wtchoi", "Stable AbstractState");
+        Log.d("wtchoi", "Stable State");
 
         //get command packet
         DriverPacket packet = s.channel.receivePacket();
