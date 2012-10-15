@@ -11,6 +11,7 @@ abstract class AbstractState {
     protected SupervisorImp s;
     public AbstractState(SupervisorImp s){ this.s = s; }
 
+    //work must be synchronized using s.sLists
     abstract public void work();
     abstract public AbstractState next();
     public void onStop(){}

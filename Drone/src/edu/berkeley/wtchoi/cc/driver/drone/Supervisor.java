@@ -11,10 +11,9 @@ public abstract class Supervisor{
 	 
 	private static SupervisorImp supervisor;
 
-    public static void appInit(Activity defaultActivity){
-        Supervisor.init(defaultActivity);
+    public static void appPrepare(Activity defaultActivity){
+        Supervisor.prepare(defaultActivity);
         //Supervisor.logActivityCreated(defaultActivity);
-        Supervisor.clearData();
         //Supervisor.logCall("onCreate", defaultActivity);
     }
 
@@ -22,38 +21,22 @@ public abstract class Supervisor{
         Supervisor.start();
     }
 
-	private static void init(Activity defaultActivity){
+    private static LoggerImp logger = new LoggerImp(){
+        public void log(String s){
+            Log.d("wtchoi",s);
+        };};
+
+	private static void prepare(Activity defaultActivity){
         if(skipmode()) return;
         //If this is first execution of application,
         //initialize supervisor
-        Logger.init(new LoggerImp(){
-            public void log(String s){
-                Log.d("wtchoi",s);
-            }
-        });
+        Logger.init(logger);
 
 		if(supervisor == null){
 			supervisor = new SupervisorImp();
-            supervisor.init(defaultActivity);
+            supervisor.prepare(defaultActivity);
 		}
-        else{
-            ////If this is not the first run of application,
-            ////there might be several options to choose.
-            ////supervisor.sThread.stop();
-
-            ////The first thing to determine is whether this is
-            ////intended restart or not.
-            //if(!supervisor.restartIntended){
-            //    //If this is not intended, ERROR
-            //    throw new RuntimeException("Unexpected stop/resume detected");
-            //}
-            //else{
-            //   //Otherwise, we have to check what is the intention.
-            //   //We will use is later.
-            //   throw new RuntimeException("Unreachable Reached!");
-            //}
-            //supervisor.sThread.resume();
-        }
+        clearData();
 	}
 
     private static void clearData(){
@@ -63,7 +46,7 @@ public abstract class Supervisor{
 
 	public static void start(){
         if(skipmode()) return;
-        Logger.log("Supervisor Starter");
+        Logger.log("Supervisor Start");
 		supervisor.start();
 	}
 
@@ -92,6 +75,12 @@ public abstract class Supervisor{
 		supervisor.logReturn(fid);
         Logger.log("RETURN: "+ fid);
 	}
+
+    public static void logUnroll(int fid){
+        if(skipmode()) return;
+        supervisor.logUnroll(fid);
+        Logger.log("UNROLL: "+ fid);
+    }
 
     public static void logReceiver(Object o, int fid){
         if(skipmode()) return;
@@ -126,23 +115,39 @@ public abstract class Supervisor{
     }
 
 
-	public static void logActivityCreated(Activity a){
+	public static void logActivityCreatedEnter(){
         if(skipmode()) return;
-        Logger.log("Activity(" + a.toString() + ") is Created");
-		supervisor.logActivityCreated(a);
-	}
-	
-	public static void logStart(Activity a){
-        if(skipmode()) return;
-        Logger.log("Activity(" + a.toString() + ") is Started");
-		supervisor.logStart(a);
+		supervisor.logActivityCreatedEnter();
 	}
 
-	public static void logStop(Activity a){
+    public static void logActivityCreatedExit(Activity a){
+        if(skipmode()) return;
+        Logger.log("Activity(" + a.toString() + ") is Created");
+        supervisor.logActivityCreatedExit(a);
+    }
+	
+	public static void logStartEnter(){
+        if(skipmode()) return;
+		supervisor.logStartEnter();
+	}
+
+    public static void logStartExit(Activity a){
+        if(skipmode()) return;
+        Logger.log("Activity(" + a.toString() + ") is Started");
+        supervisor.logStartExit(a);
+    }
+
+
+    public static void logStopEnter(){
+        if(skipmode()) return;
+		supervisor.logStopEnter();
+	}
+
+    public static void logStopExit(Activity a){
         if(skipmode()) return;
         Logger.log("Activity(" + a.toString() + ") is Stoped");
-		supervisor.logStop(a);
-	}
+        supervisor.logStopExit(a);
+    }
 
     public static boolean skipmode(){
         return false;

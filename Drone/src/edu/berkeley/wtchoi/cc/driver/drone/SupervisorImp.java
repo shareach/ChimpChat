@@ -10,7 +10,6 @@ package edu.berkeley.wtchoi.cc.driver.drone;
 
 import android.app.Activity;
 import android.app.Application;
-import android.graphics.Point;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -28,10 +27,12 @@ class SupervisorImp extends Thread{
     HashMap<Long, LinkedList<SLog>> sLists;
     HashMap<Long, LinkedList<SLog>> sStacks;
     HashSet<Long> threads;
+    LinkedList<SLog> mainList;
+    LinkedList<SLog> mainStack;
     long mainTid;
 
-    private void checkInit(){
-        long tid = Thread.currentThread().getId();
+    private void checkInit(long tid){
+        if(tid == mainTid) return;
 
         boolean flag = threads.contains(tid);
         if(flag) return;
@@ -44,30 +45,56 @@ class SupervisorImp extends Thread{
     }
 
     private void pushToList(SLog slog){
-        checkInit();
         long tid = Thread.currentThread().getId();
-        Log.d("wtchoi","tid = " + tid);
-        sLists.get(tid).add(slog);
+        //Log.d("wtchoi","tid = " + tid + ", " + slog.toString());
+
+        if(tid == mainTid){
+            mainList.add(slog);
+        }
+        else{
+            checkInit(tid);
+            sLists.get(tid).add(slog);
+        }
     }
 
     private void pushToBoth(SLog slog){
-        checkInit();
         long tid = Thread.currentThread().getId();
-        sStacks.get(tid).add(slog);
-        sLists.get(tid).add(slog);
+        if(tid == mainTid){
+            mainList.add(slog);
+            mainStack.add(slog);
+        }
+        else{
+            checkInit(tid);
+            sStacks.get(tid).add(slog);
+            sLists.get(tid).add(slog);
+        }
     }
 
     private void popFromStack(){
-        checkInit();
         long tid = Thread.currentThread().getId();
-        LinkedList<SLog> stack = sStacks.get(tid);
+
+        LinkedList<SLog> stack;
+        if(tid == mainTid){
+            stack = mainStack;
+        }
+        else{
+            checkInit(tid);
+            stack = sStacks.get(tid);
+        }
         stack.removeLast();
     }
 
     private SLog getStackTop(){
-        checkInit();
         long tid = Thread.currentThread().getId();
-        LinkedList<SLog> stack = sStacks.get(tid);
+        LinkedList<SLog> stack;
+        if(tid == mainTid){
+            stack = mainStack;
+        }
+        else{
+            checkInit(tid);
+            stack = sStacks.get(tid);
+
+        }
         return stack.getLast();
     }
 
@@ -78,10 +105,18 @@ class SupervisorImp extends Thread{
     private ApplicationWrapper app_wrapper;
     TcpChannel<DriverPacket> channel;
 
+    //Application is activated only after method "onStart" is call of the default activity
+    private boolean isBeforeActivated = true;
+
+
     int TICKCOUNT = 5;
     int TICKINTERVAL = 100;
     int TICKSNOOZE = 3;
     int STABLECOUNT = 1;
+
+    public int getSTABLECOUNT(){
+        return STABLECOUNT;
+    }
 
     TransitionInfo transitionInfo;
 
@@ -96,25 +131,25 @@ class SupervisorImp extends Thread{
 
     public SupervisorImp(){}
 
-    public void init(Activity defaultActivity){
+    public void prepare(Activity defaultActivity){
         //If this is first execution of application,
         //initialize supervisor
         sLists = new HashMap<Long, LinkedList<SLog>>();
         sStacks = new HashMap<Long, LinkedList<SLog>>();
         threads = new HashSet<Long>();
-        mainTid = Thread.currentThread().getId();
-        Log.d("wtchoi","mainTid = " + mainTid);
-        checkInit();
+        mainStack = new LinkedList<SLog>();
+        mainList = new LinkedList<SLog>();
+        //mainTid = Thread.currentThread().getId();
+        //Log.d("wtchoi","mainTid = " + mainTid);
 
         activityStates = new HashMap<Activity,ActivityState>();
 
         Application app = defaultActivity.getApplication();
         app_wrapper = new ApplicationWrapper(app);
 
+
         windowManager = defaultActivity.getWindowManager();
         defaultDisplay = windowManager.getDefaultDisplay();
-
-        Point size = new Point();
 
         //defaultDisplay.getSize(size);
         screen_x = defaultDisplay.getWidth();
@@ -123,6 +158,7 @@ class SupervisorImp extends Thread{
         initiateChannel();
     }
 
+
     public void clearData(){
         app_wrapper.clearData();
     }
@@ -130,29 +166,34 @@ class SupervisorImp extends Thread{
     @Override
     public void run(){
         while(true){
-            //Establish Server Connection, at first
-            //if(state == SupervisorState.INIT)
-            //	initiateChannel();
+            //Log.d("wtchoi", "try get currentActicity in run");
             Activity activeActivity = getCurrentActivity();
 
             //Tick Sleep
+            //Log.d("wtchoi", "try sleepTick in run");
             sleepTick();
 
-            //Check whether App is active or note
-            //finish this round, if App is inactive
-            synchronized (sLists){
-                if(activeActivity == null){
-                    state.onStop();
-                }
+            //Wait for the first activity to be started
+            //TODO: catch the case when application dies before activated
 
-                if(tickcount == 0){
-                    this.state.work();
-                    this.state = state.next();
-                    tickcount = TICKCOUNT;
-                }
-                else{
-                    tickcount--;
-                }
+            //Check whether App is active or note
+            //finish this round, if App is not yet activated
+            if(isBeforeActivated) continue;
+
+            //finish application is App is become inactive
+            if(activeActivity == null){
+                //Log.d("wtchoi", "try stop!!!!");
+                state.onStop();
+            }
+
+            //Log.d("wtchoi", "try run main");
+            if(tickcount == 0){
+                this.state.work();
+                this.state = state.next();
+                tickcount = TICKCOUNT;
+            }
+            else{
+                tickcount--;
             }
         }
     }
@@ -167,8 +208,6 @@ class SupervisorImp extends Thread{
     private void initiateChannel(){
         channel = TcpChannel.getServerSide(13338);
         channel.connect();
-        //channel = TcpChannel.getClientSide("10.0.2.2",13338);
-        //channel.connect();
 
         Log.d("wtchoi", "stream initialized");
         state = new InitState(this);
@@ -185,9 +224,7 @@ class SupervisorImp extends Thread{
     }
 
     private void snooze(){
-        synchronized (sLists){
-            tickcount = (tickcount > TICKSNOOZE) ? tickcount : TICKSNOOZE;
-        }
+        tickcount = (tickcount > TICKSNOOZE) ? tickcount : TICKSNOOZE;
     }
 
     private Activity getCurrentActivity(){
@@ -207,22 +244,24 @@ class SupervisorImp extends Thread{
     }
 
     public synchronized void logEnter(int fid){
+        SLog log = SLog.getEnter(fid);
         synchronized (sLists){
-            pushToBoth(SLog.getEnter(fid));
+            pushToBoth(log);
             snooze();
         }
     }
 
     public synchronized void logReceiver(Object obj, int fid){
+        SLog log = SLog.getReceiver(obj.hashCode(), fid);
         synchronized (sLists){
-            pushToList(SLog.getReceiver(obj.hashCode(), fid));
+            pushToList(log);
             snooze();
         }
     }
 
     public synchronized void logExit(int fid){
+        SLog log = SLog.getExit(fid);
         synchronized (sLists){
-            SLog log = SLog.getExit(fid);
             pushToList(log);
 
             SLog stackTop = getStackTop();
@@ -240,8 +279,8 @@ class SupervisorImp extends Thread{
     }
 
     public synchronized void logUnroll(int fid){
+        SLog log = SLog.getUnroll(fid);
         synchronized (sLists){
-            SLog log = SLog.getUnroll(fid);
             pushToList(log);
 
             SLog stackTop = getStackTop();
@@ -259,16 +298,16 @@ class SupervisorImp extends Thread{
     }
 
     public synchronized void logCall(int fid){
+        SLog log = SLog.getCall(fid);
         synchronized (sLists){
-            SLog log = SLog.getCall(fid);
             pushToBoth(log);
             snooze();
         }
     }
 
     public void logReturn(int fid){
+        SLog log = SLog.getReturn(fid);
         synchronized(sLists){
-            SLog log = SLog.getReturn(fid);
             pushToList(log);
 
             SLog stackTop = getStackTop();
@@ -286,30 +325,65 @@ class SupervisorImp extends Thread{
     }
 
     public void logProgramPoint(int pp, int fid){
+        SLog log = SLog.getPP(pp, fid);
         synchronized (sLists){
-            pushToList(SLog.getPP(pp, fid));
+            pushToList(log);
             snooze();
         }
     }
 
-    public void logActivityCreated(Activity a){
+    private int activityMethodCallCount = 0;
+    public void logActivityCreatedEnter(){
         synchronized (sLists){
-            activityStates.put(a, new ActivityState());
+            activityMethodCallCount++;
             snooze();
         }
     }
 
-    public void logStart(Activity a){
+    public void logActivityCreatedExit(Activity a){
         synchronized (sLists){
-            activityStates.get(a).setActive(true);
+            activityMethodCallCount--;
+            if(activityMethodCallCount == 0){
+                activityStates.put(a, new ActivityState());
+            }
             snooze();
         }
     }
 
-    public void logStop(Activity a){
+    public void logStartEnter(){
         synchronized (sLists){
-            ActivityState t = activityStates.get(a);
-            t.setActive(false);
+            activityMethodCallCount++;
+            //isBeforeActivated = false;
+            //activityStates.get(a).setActive(true);
+            snooze();
+        }
+    }
+
+    public void logStartExit(Activity a){
+        synchronized (sLists){
+            activityMethodCallCount--;
+            if(activityMethodCallCount == 0){
+                isBeforeActivated = false;
+                activityStates.get(a).setActive(true);
+            }
+            snooze();
+        }
+    }
+
+    public void logStopEnter(){
+        synchronized (sLists){
+            activityMethodCallCount++;
+            snooze();
+        }
+    }
+
+    public void logStopExit(Activity a){
+        synchronized (sLists){
+            activityMethodCallCount--;
+            if(activityMethodCallCount == 0){
+                ActivityState t = activityStates.get(a);
+                t.setActive(false);
+            }
             snooze();
         }
     }

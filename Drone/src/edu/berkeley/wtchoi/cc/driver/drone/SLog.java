@@ -75,6 +75,12 @@ public class SLog{
             case EXIT:
                 typ = "EXIT";
                 break;
+            case UNROLL:
+                typ = "UNROLL";
+                break;
+            case PP:
+                typ = "PP";
+                break;
 			default:
 				break;
 		}

@@ -34,6 +34,7 @@ public class StableState extends AbstractState {
 
         //get command packet
         DriverPacket packet = s.channel.receivePacket();
+        Log.d("wtchoi", "packet received");
 
         //handle packet
 
@@ -62,10 +63,9 @@ public class StableState extends AbstractState {
             case SetOptions:
                 int[] options  = packet.getDriverOption();
                 s.TICKCOUNT    = options[DriverPacket.OptionIndex.ITickCount.ordinal()];
-                s.TICKSNOOZE   = options[DriverPacket.OptionIndex.ITickSnooze.ordinal()];
                 s.TICKINTERVAL = options[DriverPacket.OptionIndex.ITickInterval.ordinal()];
+                s.TICKSNOOZE   = options[DriverPacket.OptionIndex.ITickSnooze.ordinal()];
                 s.STABLECOUNT  = options[DriverPacket.OptionIndex.IStableCount.ordinal()];
-
                 s.channel.sendPacket(DriverPacket.getAck());
                 break;
 

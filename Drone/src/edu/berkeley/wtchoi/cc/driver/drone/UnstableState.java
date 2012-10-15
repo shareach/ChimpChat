@@ -36,11 +36,11 @@ public class UnstableState extends AbstractState {
     public void work(){
         Log.d("wtchoi", "Unstable State");
 
+        LinkedList<SLog> sStack = s.mainStack;
+        LinkedList<SLog> sList = s.mainList;
+
         //We assume that lock all function accessing s.sStack acquire lock of s.sList.
         synchronized (s.sLists){
-            long mainTid = s.mainTid;
-            LinkedList<SLog> sStack = s.sStacks.get(mainTid);
-            LinkedList<SLog> sList = s.sLists.get(mainTid);
             if(prevsize == sList.size() && sStack.size() == 0){
                 if(stablecount == s.STABLECOUNT){
                     s.transitionInfo = new TransitionInfo();
