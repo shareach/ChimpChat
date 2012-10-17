@@ -132,8 +132,8 @@ public class DriverPacket implements Serializable{
         EnterEditText("EnterEditText"),
 
         // DriverPacket from Application
-        AckStable("AckStack"),
-        ViewInfo("viewInfo"),
+        AckStable("AckStable"),
+        ViewInfo("ViewInfo"),
         TI("TransitionInfo"),
         AckStop("AckStop");
 

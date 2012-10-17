@@ -1,10 +1,11 @@
 package edu.berkeley.wtchoi.cc;
 
-import edu.berkeley.wtchoi.cc.driver.EnterCommand;
-import edu.berkeley.wtchoi.cc.driver.TouchCommand;
-import edu.berkeley.wtchoi.cc.driver.ViewInfo;
+import edu.berkeley.wtchoi.cc.driver.*;
 import edu.berkeley.wtchoi.cc.driver.ViewInfo.PointFactory;
-import edu.berkeley.wtchoi.cc.driver.ICommand;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -16,11 +17,16 @@ import edu.berkeley.wtchoi.cc.driver.ICommand;
 public class TouchFactory implements PointFactory<ICommand> {
     private static TouchFactory instance;
 
-    public ICommand get(int x, int y, ViewInfo v) {
+    public Collection<ICommand> get(int x, int y, ViewInfo v) {
+        Collection<ICommand> c = new LinkedList<ICommand>();
         if(v.isEditText()){
-            return new EnterCommand(x,y,v.getTextContent(),"random string",v.hasFocus());
+            c.add(new EnterCommand(x, y, v.getTextContent(), "random string", v.hasFocus()));
         }
-        return new TouchCommand(x, y) ;
+        else{
+            c.add(new TouchCommand(x, y));
+            c.add(new LongTouchCommand(x, y));
+        }
+        return c;
     }
 
     static TouchFactory getInstance() {

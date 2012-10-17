@@ -13,8 +13,8 @@ import edu.berkeley.wtchoi.cc.driver.Device.CannotSendCommand;
  */
 //Concrete ICommand Position. We are going to use this as an input character
 public final class TouchCommand extends ICommand {//TODO
-    private Integer x;
-    private Integer y;
+    protected Integer x;
+    protected Integer y;
 
     //All implementation of command should obtain integer identifier from
     private static final Integer tint = IdentifierPool.getFreshInteger();

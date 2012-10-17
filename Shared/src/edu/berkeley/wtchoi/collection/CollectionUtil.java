@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 
 /**
@@ -41,6 +42,34 @@ public class CollectionUtil {
             }
         }
     }
+
+    static public <T extends Comparable<T>> int compare(Collection<T> a, Collection<T> b, Comparator<T> comparator){
+        int temp1 = a.size();
+        int temp2 = b.size();
+
+        if (temp1 != temp2)
+            return Integer.valueOf(temp1).compareTo(temp2);
+
+        Iterator<T> it1 = a.iterator();
+        Iterator<T> it2 = b.iterator();
+
+        while (true) {
+            if (it1.hasNext()) {
+                if (it2.hasNext()) {
+                    int temp = comparator.compare(it1.next(),it2.next());
+                    if (temp == 0) continue;
+                    return temp;
+                } else {
+                    return 1;
+                }
+            } else {
+                if(it2.hasNext())
+                    return -1;
+                return 0;
+            }
+        }
+    }
+
 
     static public <E,T> void writeTo(Collection<E> c, String opener, String separator, String closer, Writer writer)
         throws IOException {

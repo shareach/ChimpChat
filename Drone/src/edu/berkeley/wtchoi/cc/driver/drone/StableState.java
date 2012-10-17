@@ -34,7 +34,7 @@ public class StableState extends AbstractState {
 
         //get command packet
         DriverPacket packet = s.channel.receivePacket();
-        Log.d("wtchoi", "packet received");
+        //Log.d("wtchoi", "packet received:" + packet.getType().toString());
 
         //handle packet
 
@@ -146,5 +146,5 @@ public class StableState extends AbstractState {
         return (View[]) viewsField.get(instance);
     }
 
-    public AbstractState next(){ return next; }
+    public synchronized AbstractState next(){ return next; }
 }

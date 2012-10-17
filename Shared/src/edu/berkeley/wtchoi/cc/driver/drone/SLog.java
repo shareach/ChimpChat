@@ -1,12 +1,11 @@
 package edu.berkeley.wtchoi.cc.driver.drone;
-//INSTRUMENTATION
 
 
-import android.content.ReceiverCallNotAllowedException;
+import java.io.Serializable;
 
-import java.util.concurrent.Callable;
+public class SLog implements Comparable<SLog>, Serializable {
+    private static final long serialVersionUID = -5186309675577891457L;
 
-public class SLog{
     public static final int CALL = 1;
     public static final int RETURN = 2;
     public static final int ENTER = 3;
@@ -81,9 +80,40 @@ public class SLog{
             case PP:
                 typ = "PP";
                 break;
+            case RECEIVER:
+                typ = "RECEIVER";
+                break;
 			default:
 				break;
 		}
 		return typ+"(fid = "+ fid +")";
 	}
+
+    @Override
+    public int compareTo(SLog t){
+        int c1 = compareInt(type, t.type);
+        if(c1 != 0) return c1;
+
+        int c2 = compareInt(fid, t.fid);
+        if(c2 != 0) return c2;
+
+        return compareInt(aux, t.aux);
+    }
+
+    public int pseudoCompareTo(SLog t){
+        int c1 = compareInt(type, t.type);
+        if(c1 != 0) return c1;
+
+        int c2 = compareInt(fid, t.fid);
+        if(c2 != 0) return c2;
+
+        if(type == PP) return compareInt(aux, t.aux);
+        else return 0;
+    }
+
+    private int compareInt(int i1, int i2){
+        if(i1 > i2) return 1;
+        if(i1 < i2) return -1;
+        return 0;
+    }
 }

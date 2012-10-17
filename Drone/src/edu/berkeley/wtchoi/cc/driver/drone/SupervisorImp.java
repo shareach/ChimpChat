@@ -17,18 +17,16 @@ import edu.berkeley.wtchoi.cc.driver.DriverPacket;
 import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
 import edu.berkeley.wtchoi.util.TcpChannel;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.*;
 
 class SupervisorImp extends Thread{
+    volatile ConcurrentHashMap<Long, BlockingDeque<SLog>> sLists;
+    volatile ConcurrentHashMap<Long, BlockingDeque<SLog>> sStacks;
+    volatile ConcurrentSkipListSet<Long> threads;
+    volatile BlockingDeque<SLog> mainList;
+    volatile BlockingDeque<SLog> mainStack;
 
-    HashMap<Long, LinkedList<SLog>> sLists;
-    HashMap<Long, LinkedList<SLog>> sStacks;
-    HashSet<Long> threads;
-    LinkedList<SLog> mainList;
-    LinkedList<SLog> mainStack;
     long mainTid;
 
     private void checkInit(long tid){
@@ -37,8 +35,8 @@ class SupervisorImp extends Thread{
         boolean flag = threads.contains(tid);
         if(flag) return;
 
-        LinkedList<SLog> list = new LinkedList<SLog>();
-        LinkedList<SLog> stack = new LinkedList<SLog>();
+        BlockingDeque<SLog> list = new LinkedBlockingDeque<SLog>();
+        BlockingDeque<SLog> stack = new LinkedBlockingDeque<SLog>();
         sLists.put(tid, list);
         sStacks.put(tid, stack);
         threads.add(tid);
@@ -48,32 +46,42 @@ class SupervisorImp extends Thread{
         long tid = Thread.currentThread().getId();
         //Log.d("wtchoi","tid = " + tid + ", " + slog.toString());
 
+        BlockingDeque<SLog> lst;
         if(tid == mainTid){
-            mainList.add(slog);
+            lst = mainList;
         }
         else{
             checkInit(tid);
-            sLists.get(tid).add(slog);
+            lst = sLists.get(tid);
         }
+        lst.add(slog);
+        //Log.d("wtchoi", "list length = " + lst.size());
     }
 
     private void pushToBoth(SLog slog){
         long tid = Thread.currentThread().getId();
+
+        BlockingDeque<SLog> lst;
+        BlockingDeque<SLog> stk;
         if(tid == mainTid){
-            mainList.add(slog);
-            mainStack.add(slog);
+            lst = mainList;
+            stk = mainStack;
         }
         else{
             checkInit(tid);
-            sStacks.get(tid).add(slog);
-            sLists.get(tid).add(slog);
+            lst = sLists.get(tid);
+            stk = sStacks.get(tid);
         }
+        lst.add(slog);
+        stk.add(slog);
+
+        Log.d("wtchoi", "list length = " + lst.size());
     }
 
     private void popFromStack(){
         long tid = Thread.currentThread().getId();
 
-        LinkedList<SLog> stack;
+        BlockingDeque<SLog> stack;
         if(tid == mainTid){
             stack = mainStack;
         }
@@ -86,7 +94,7 @@ class SupervisorImp extends Thread{
 
     private SLog getStackTop(){
         long tid = Thread.currentThread().getId();
-        LinkedList<SLog> stack;
+        BlockingDeque<SLog> stack;
         if(tid == mainTid){
             stack = mainStack;
         }
@@ -100,25 +108,26 @@ class SupervisorImp extends Thread{
 
     private int tickcount = 0;
 
-    private HashMap<Activity,ActivityState> activityStates;
-    private AbstractState state;
+    private ConcurrentHashMap<Activity,ActivityState> activityStates;
+    private volatile AbstractState state;
     private ApplicationWrapper app_wrapper;
-    TcpChannel<DriverPacket> channel;
+
+    volatile TcpChannel<DriverPacket> channel;
 
     //Application is activated only after method "onStart" is call of the default activity
     private boolean isBeforeActivated = true;
 
 
-    int TICKCOUNT = 5;
-    int TICKINTERVAL = 100;
-    int TICKSNOOZE = 3;
-    int STABLECOUNT = 1;
+    volatile int TICKCOUNT = 5;
+    volatile int TICKINTERVAL = 100;
+    volatile int TICKSNOOZE = 3;
+    volatile int STABLECOUNT = 1;
 
     public int getSTABLECOUNT(){
         return STABLECOUNT;
     }
 
-    TransitionInfo transitionInfo;
+    volatile TransitionInfo transitionInfo;
 
     //Application properties
     private int screen_x;
@@ -127,22 +136,22 @@ class SupervisorImp extends Thread{
     private Display defaultDisplay;
 
     //internal flag variables
-    private boolean restartIntended = false;
+    volatile private boolean restartIntended = false;
 
     public SupervisorImp(){}
 
     public void prepare(Activity defaultActivity){
         //If this is first execution of application,
         //initialize supervisor
-        sLists = new HashMap<Long, LinkedList<SLog>>();
-        sStacks = new HashMap<Long, LinkedList<SLog>>();
-        threads = new HashSet<Long>();
-        mainStack = new LinkedList<SLog>();
-        mainList = new LinkedList<SLog>();
-        //mainTid = Thread.currentThread().getId();
+        sLists = new ConcurrentHashMap<Long, BlockingDeque<SLog>>();
+        sStacks = new ConcurrentHashMap<Long, BlockingDeque<SLog>>();
+        threads = new ConcurrentSkipListSet<Long>();
+        mainStack = new LinkedBlockingDeque<SLog>();
+        mainList = new LinkedBlockingDeque<SLog>();
+        mainTid = Thread.currentThread().getId();
         //Log.d("wtchoi","mainTid = " + mainTid);
 
-        activityStates = new HashMap<Activity,ActivityState>();
+        activityStates = new ConcurrentHashMap<Activity,ActivityState>();
 
         Application app = defaultActivity.getApplication();
         app_wrapper = new ApplicationWrapper(app);
@@ -166,8 +175,10 @@ class SupervisorImp extends Thread{
     @Override
     public void run(){
         while(true){
-            //Log.d("wtchoi", "try get currentActicity in run");
-            Activity activeActivity = getCurrentActivity();
+            Activity activeActivity;
+            synchronized (sLists){
+                activeActivity = getCurrentActivity();
+            }
 
             //Tick Sleep
             //Log.d("wtchoi", "try sleepTick in run");
@@ -175,6 +186,7 @@ class SupervisorImp extends Thread{
 
             //Wait for the first activity to be started
             //TODO: catch the case when application dies before activated
+
 
             //Check whether App is active or note
             //finish this round, if App is not yet activated
@@ -228,11 +240,13 @@ class SupervisorImp extends Thread{
     }
 
     private Activity getCurrentActivity(){
-        for(Map.Entry<Activity, ActivityState> e:activityStates.entrySet()){
-            if(e.getValue().isActive)
-                return e.getKey();
+        synchronized (sLists){
+            for(Map.Entry<Activity, ActivityState> e:activityStates.entrySet()){
+                if(e.getValue().isActive)
+                    return e.getKey();
+            }
+            return null;
         }
-        return null;
     }
 
     public int getScreenX(){
@@ -307,7 +321,7 @@ class SupervisorImp extends Thread{
 
     public void logReturn(int fid){
         SLog log = SLog.getReturn(fid);
-        synchronized(sLists){
+        synchronized (sLists){
             pushToList(log);
 
             SLog stackTop = getStackTop();
@@ -351,7 +365,8 @@ class SupervisorImp extends Thread{
     }
 
     public void logStartEnter(){
-        synchronized (sLists){
+        synchronized (sLists)
+        {
             activityMethodCallCount++;
             //isBeforeActivated = false;
             //activityStates.get(a).setActive(true);
@@ -360,7 +375,8 @@ class SupervisorImp extends Thread{
     }
 
     public void logStartExit(Activity a){
-        synchronized (sLists){
+        synchronized (sLists)
+        {
             activityMethodCallCount--;
             if(activityMethodCallCount == 0){
                 isBeforeActivated = false;
@@ -371,14 +387,16 @@ class SupervisorImp extends Thread{
     }
 
     public void logStopEnter(){
-        synchronized (sLists){
+        synchronized (sLists)
+        {
             activityMethodCallCount++;
             snooze();
         }
     }
 
     public void logStopExit(Activity a){
-        synchronized (sLists){
+        synchronized (sLists)
+        {
             activityMethodCallCount--;
             if(activityMethodCallCount == 0){
                 ActivityState t = activityStates.get(a);
@@ -391,15 +409,51 @@ class SupervisorImp extends Thread{
 
     // To track whether activity is enabled or not
     // If all activity is disabled, supervisor will skip it's tick
-    class ActivityState{
+    private class ActivityState{
         public boolean isActive;
 
         public ActivityState(){
             isActive = false;
         }
 
-        public void setActive(boolean b){
+        public synchronized void setActive(boolean b){
             isActive = b;
+        }
+    }
+
+    int getTraceSize(long tid){
+        synchronized (sLists){
+            if(tid == mainTid)
+                return mainList.size();
+            else
+                return sLists.get(tid).size();
+        }
+    }
+
+    int getStackSize(long tid){
+        synchronized (sLists){
+            if(tid == mainTid)
+                return mainStack.size();
+            else
+                return sStacks.get(tid).size();
+        }
+    }
+
+    void clearTrace(long tid){
+        synchronized (sLists){
+            if(tid == mainTid)
+                mainList.clear();
+            else
+                sLists.get(tid).clear();
+        }
+    }
+
+    BlockingDeque<SLog> getTrace(long tid){
+        synchronized (sLists){
+            if(tid == mainTid)
+                return mainList;
+            else
+                return sLists.get(tid);
         }
     }
 }

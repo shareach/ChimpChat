@@ -29,9 +29,9 @@ public class DriverOption {
 
 
         mTickCount    = E.getenv_as_int("TICK_COUNT", 4);
-        mTickInterval = E.getenv_as_int("TICK_INTERVAL",50);
+        mTickInterval = E.getenv_as_int("TICK_INTERVAL",100);
         mTickSnooze   = E.getenv_as_int("TICK_SNOOZE",2);
-        mStableCount  = E.getenv_as_int("STABLE_COUNT",1);
+        mStableCount  = E.getenv_as_int("STABLE_COUNT",2);
     }
 
     //to check whether all basic information is there

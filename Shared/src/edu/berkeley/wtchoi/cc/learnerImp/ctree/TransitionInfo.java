@@ -1,6 +1,13 @@
 package edu.berkeley.wtchoi.cc.learnerImp.ctree;
 
+import com.sun.xml.internal.ws.handler.ServerLogicalHandlerTube;
+import edu.berkeley.wtchoi.cc.driver.drone.SLog;
+import edu.berkeley.wtchoi.collection.CVector;
+import edu.berkeley.wtchoi.collection.CollectionUtil;
+
 import java.io.Serializable;
+import java.util.Comparator;
+import java.util.LinkedList;
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,17 +21,26 @@ public class TransitionInfo implements Serializable
 {
     private static final long serialVersionUID = -5186309675577891457L;
 
-    private boolean didNothing = false;
+    private CVector<SLog> trace;
 
-    public void setDidNothing (boolean f){
-        didNothing = f;
+    public TransitionInfo(CVector<SLog> t){
+        trace = t;
     }
 
     public boolean didNothing(){
-        return didNothing;
+        return trace.isEmpty();
     }
 
     public boolean equalsTo(TransitionInfo target){
-        return didNothing == target.didNothing;
+        if(trace == null) return target.trace == null;
+        else if(target.trace == null) return false;
+
+        return 0 == CollectionUtil.compare(trace, target.trace, comparator);
     }
+
+    private static Comparator<SLog> comparator = new Comparator<SLog>(){
+        public int compare(SLog s1, SLog s2){
+            return s1.pseudoCompareTo(s2);
+        }
+    };
 }

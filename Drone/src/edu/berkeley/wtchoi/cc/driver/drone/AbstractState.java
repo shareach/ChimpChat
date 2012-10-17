@@ -8,7 +8,7 @@ package edu.berkeley.wtchoi.cc.driver.drone;
  * To change this template use File | Settings | File Templates.
  */
 abstract class AbstractState {
-    protected SupervisorImp s;
+    protected volatile SupervisorImp s;
     public AbstractState(SupervisorImp s){ this.s = s; }
 
     //work must be synchronized using s.sLists

@@ -150,9 +150,10 @@ public class ViewInfo implements Serializable, Comparable {
         extendGrids(grids_x);
         extendGrids(grids_y);
 
-        Collection<T> values = generatePoints(grids_x, grids_y, factory).values();
+        Collection<T> values = generatePoints(grids_x, grids_y, factory);//.values();
         return new CSet<T>(values);
     }
+
 
     private void collectAbsoluteGrid(Collection<Integer> grids_x, Collection<Integer> grids_y){
         grids_x.add(this.absoluteX);
@@ -168,33 +169,6 @@ public class ViewInfo implements Serializable, Comparable {
                 child.collectAbsoluteGrid(grids_x, grids_y);
             }
     }
-
-    //DEPRECATED: We have to consider Attached location and Scrolled location of each view
-    //However, there is no way to collect Attached location information from outside.
-    /*
-    private void collectGrid(Collection<Integer> grids_x, Collection<Integer> grids_y) {
-        collectGrid(grids_x, grids_y, 0, 0);
-    }
-
-    private void collectGrid(Collection<Integer> grids_x, Collection<Integer> grids_y, int px, int py) {
-        int my_x = px + this.x;
-        int my_y = py + this.y;
-
-        //System.out.println("!!!" + this.y);
-        //System.out.println("!!!" + py);
-
-        grids_x.add(my_x);
-        grids_x.add(my_x + this.width);
-        grids_y.add(my_y);
-        grids_y.add(my_y + this.height);
-
-        if (this.children == null) return;
-        for (ViewInfo child : this.children) {
-            child.collectGrid(grids_x, grids_y, my_x, my_y);
-        }
-    }
-    */
-
 
 
     public ViewInfo projectAbsolute(Integer ix, Integer iy){
@@ -219,48 +193,7 @@ public class ViewInfo implements Serializable, Comparable {
             return this;
         return null;
     }
-    //DEPRECATED: because of Scroll location and Attached location
-    /*
-    public ViewInfo project(Integer x, Integer y) {
-        try {
-            return this.project(x, y, 0, 0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        return null;
-    }
 
-    private ViewInfo project(Integer x, Integer y, int px, int py) {
-        //System.out.println((px+x)+","+(y+py));
-        int my_x = this.x + px;
-        int my_y = this.y + py;
-
-        //Assumption : parent include children
-        if (my_x > x || my_x + this.width <= x)
-            if (my_y > y || my_y + this.height <= y)
-                return null;
-
-        //If there is no children, just return myself
-        if (children == null){
-            if(this.visible)
-                return this;
-            return null;
-        }
-
-        //Assumption : children never intersect
-        ViewInfo projected_child;
-        for (ViewInfo child : children) {
-            projected_child = child.project(x, y, my_x, my_y);
-            if (projected_child != null)
-                return projected_child;
-        }
-
-        //The point hit no child.
-        //Thus return my self.
-        return this;
-    }
-    */
 
     private static void extendGrids(TreeSet<Integer> grids) {
         TreeSet<Integer> inter_grids = new TreeSet<Integer>();
@@ -278,17 +211,27 @@ public class ViewInfo implements Serializable, Comparable {
 
     }
 
-    private <T> Map<ViewInfo, T> generatePoints(TreeSet<Integer> grids_x, TreeSet<Integer> grids_y, PointFactory<T> factory) {
-        TreeMap<ViewInfo, T> map = new TreeMap<ViewInfo, T>();
+    private <T> Collection<T> generatePoints(TreeSet<Integer> grids_x, TreeSet<Integer> grids_y, PointFactory<T> factory) {
+        TreeMap<ViewInfo, Collection<T>> map = new TreeMap<ViewInfo, Collection<T>>();
         ViewInfo hit;
         for (Integer x : grids_x) {
             for (Integer y : grids_y) {
                 //System.out.println("("+x+","+y+")");
                 hit = this.projectAbsolute(x, y);
-                if (hit != null) map.put(hit, factory.get(x, y,hit));
+                if (hit != null){
+                    Collection<T> iter = factory.get(x,y,hit);
+                    map.put(hit, factory.get(x, y,hit));
+                }
             }
         }
-        return map;
+
+        LinkedList<T> lst = new LinkedList<T>();
+        for(Collection<T> tc: map.values()){
+            for(T t:tc){
+                lst.add(t);
+            }
+        }
+        return lst;
     }
 
     @SuppressWarnings("unchecked")
@@ -302,7 +245,8 @@ public class ViewInfo implements Serializable, Comparable {
     }
 
     public static interface PointFactory<T> {
-        public T get(int x, int y, ViewInfo v);
+        //Point object generated from (x,y) position can be multiple
+        public Collection<T> get(int x, int y, ViewInfo v);
     }
 
     public void setIsEditText(boolean f){

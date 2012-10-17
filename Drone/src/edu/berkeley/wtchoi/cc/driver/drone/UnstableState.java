@@ -3,8 +3,10 @@ package edu.berkeley.wtchoi.cc.driver.drone;
 import android.util.Log;
 import edu.berkeley.wtchoi.cc.driver.DriverPacket;
 import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
+import edu.berkeley.wtchoi.collection.CVector;
 
 import java.util.LinkedList;
+import java.util.concurrent.BlockingDeque;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,11 +19,12 @@ public class UnstableState extends AbstractState {
     private AbstractState next;
     private int prevsize;
     private boolean communicationFlag = true;
-    private int stablecount = 0;
+    private int stablecount;
 
     public UnstableState(SupervisorImp s, boolean cf){
         super(s);
         prevsize = 0;
+        stablecount = 0;
         this.communicationFlag = cf;
         next = this;
     }
@@ -29,6 +32,7 @@ public class UnstableState extends AbstractState {
     public UnstableState(SupervisorImp s){
         super(s);
         prevsize = 0;
+        stablecount = 0;
         next = this;
     }
 
@@ -36,17 +40,21 @@ public class UnstableState extends AbstractState {
     public void work(){
         Log.d("wtchoi", "Unstable State");
 
-        LinkedList<SLog> sStack = s.mainStack;
-        LinkedList<SLog> sList = s.mainList;
+        BlockingDeque<SLog> sStack = s.mainStack;
+        BlockingDeque<SLog> sList = s.mainList;
 
         //We assume that lock all function accessing s.sStack acquire lock of s.sList.
-        synchronized (s.sLists){
-            if(prevsize == sList.size() && sStack.size() == 0){
+        synchronized (s.sLists)
+        {
+            if(prevsize == s.getTraceSize(s.mainTid) && s.getStackSize(s.mainTid) == 0){
                 if(stablecount == s.STABLECOUNT){
-                    s.transitionInfo = new TransitionInfo();
-                    s.transitionInfo.setDidNothing(sList.isEmpty());
+                    BlockingDeque<SLog> trace = s.getTrace(s.mainTid);
+                    CVector<SLog> lst = new CVector<SLog>(trace);
+                    s.transitionInfo = new TransitionInfo(lst);
+                    Log.d("wtchoii", String.valueOf(s.getTraceSize(s.mainTid)));
 
-                    sList.clear();
+                    s.clearTrace(s.mainTid);
+
                     DriverPacket p = DriverPacket.getAckStable();
                     s.channel.sendPacket(p);
 
@@ -65,10 +73,11 @@ public class UnstableState extends AbstractState {
     }
 
     public void onStop(){
+        Log.d("wtchoi", "stopstop");
         DriverPacket p = DriverPacket.getAckStop();
         s.channel.sendPacket(p);
         s.closeApplication();
     }
 
-    public AbstractState next(){ return next; }
+    public synchronized AbstractState next(){ return next; }
 }

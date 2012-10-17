@@ -1,8 +1,10 @@
 package edu.berkeley.wtchoi.cc.learnerImp;
 
 import edu.berkeley.wtchoi.cc.driver.ICommand;
+import edu.berkeley.wtchoi.cc.driver.drone.SLog;
 import edu.berkeley.wtchoi.cc.learnerImp.ctree.TransitionInfo;
 import edu.berkeley.wtchoi.collection.CSet;
+import edu.berkeley.wtchoi.collection.CVector;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,7 +17,11 @@ public class Observation implements Comparable<Observation>{
     private CSet<ICommand> palette;
     private TransitionInfo augmentation;
 
-    private static Observation stopObservation = new Observation(new CSet<ICommand>(),new TransitionInfo());
+    private static TransitionInfo stopTransition = new TransitionInfo(null){
+        public boolean didNothing(){ return false; }
+    };
+
+    private static Observation stopObservation = new Observation(new CSet<ICommand>(),stopTransition);
 
     public Observation(CSet<ICommand> k, TransitionInfo a){
         palette = k;
@@ -45,7 +51,8 @@ public class Observation implements Comparable<Observation>{
     }
 
     public boolean isStopObservation(){
-        return this == stopObservation;
+        boolean t = this == stopObservation;
+        return t;
     }
 
     public boolean equalsTo(Observation target){

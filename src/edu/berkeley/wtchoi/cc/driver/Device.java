@@ -123,6 +123,13 @@ public class Device{
         return true;
     }
 
+    public boolean longTouch(int x, int y){
+        mChimpDevice.drag(x,y,x,y,3,1);
+        LinkedList<String> log = pollLog();
+        if(log.size() != 0) return false;
+        return true;
+    }
+
     public boolean press(PhysicalButton button, TouchPressType type){
         mChimpDevice.press(button, type);
         LinkedList<String> log = pollLog();
