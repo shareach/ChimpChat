@@ -14,7 +14,6 @@ import edu.berkeley.wtchoi.collection.CSet;
 
 public class Monkey {
     public static void main(String args[]) {
-
         Logger.init(new LoggerImp() {
             @Override
             public void log(String s) {

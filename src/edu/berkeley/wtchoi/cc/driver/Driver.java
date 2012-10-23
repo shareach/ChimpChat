@@ -58,13 +58,26 @@ public class Driver<TransitionInfo>{
         channel.setTryCount(5);
         channel.setTryInterval(1000);
 
+        //1.5. Wait phone to clean up previously died-application instance
+        long minimumWait = 1000;
+        long elapsedTime = System.currentTimeMillis() - stopTimeStamp;
+        if(elapsedTime < minimumWait){
+            E.sleep(minimumWait - elapsedTime);
+        }
 
         //2. Initiate ChimpChat connection
         String runComponent = option.getRunComponent();
         Collection<String> coll = new LinkedList<String>();
         Map<String, Object> extras = new HashMap<String, Object>();
-        device.startActivity(null, null, null, null, coll, extras, runComponent, 0);
-        E.sleep(100);
+        boolean successFlag = false;
+        for(int i = 0; i<10 ; i++){
+            System.out.println("send wake up!");
+            successFlag = device.startActivity(null, null, null, null, coll, extras, runComponent, 0);
+            E.sleep(100);
+            if(successFlag)
+                break;
+        }
+
 
 
         //3. Wait for communication channel initiation
@@ -112,7 +125,10 @@ public class Driver<TransitionInfo>{
     public boolean restartApp() {
         if(justRestarted) return true;
 
-        if(!justStoped) channel.sendPacket(DriverPacket.getReset());
+        if(!justStoped){
+            channel.sendPacket(DriverPacket.getReset());
+            stopTimeStamp = System.currentTimeMillis();
+        }
 
         justStoped = false;
         errorOccur = false;
@@ -166,6 +182,7 @@ public class Driver<TransitionInfo>{
         return true;
     }
 
+    private long stopTimeStamp = 0;
     public boolean go(ICommand c) {
         justRestarted = false;
         boolean result = false;
@@ -175,6 +192,8 @@ public class Driver<TransitionInfo>{
         }
         catch(ICommand.ApplicationTerminated e){
             justStoped = true;
+            stopTimeStamp = System.currentTimeMillis();
+
         }
         catch(Device.CannotSendCommand ee){
             errorOccur = true;

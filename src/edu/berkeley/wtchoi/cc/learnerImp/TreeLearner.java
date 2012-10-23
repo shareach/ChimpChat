@@ -137,9 +137,6 @@ public class TreeLearner implements Guide<ICommand, Observation> {
             return buildRequest(machineState, state, suffix);
         }
 
-
-        if(tryResume()) return getRequestImp(machineStatePrefix);
-
         while(!frontiersToBeTested.isEmpty()){
             CState state = pickState(frontiersToBeTested, machineState);
             CList<ICommand> suffix = pollObservation(state);
@@ -154,6 +151,7 @@ public class TreeLearner implements Guide<ICommand, Observation> {
 
             return buildRequest(machineState, state, suffix);
         }
+        if(tryResume()) return getRequestImp(machineStatePrefix);
         return null;
     }
 
@@ -163,11 +161,13 @@ public class TreeLearner implements Guide<ICommand, Observation> {
         CState resumable = null;
         int degree = 1;
 
+        int priority = 1000000000;
         for(CState state : pendingStates){
             degree = observationDegree.get(state);
-            if(degree * degree * resumeThreshold < ctree.depth() - state.getDepth()){
+            int p = degree * degree * resumeThreshold;
+            if(p < priority){
                 resumable = state;
-                break;
+                priority = p;
             }
         }
         if(resumable == null) return false;

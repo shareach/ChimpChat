@@ -124,7 +124,7 @@ public class Device{
     }
 
     public boolean longTouch(int x, int y){
-        mChimpDevice.drag(x,y,x,y,3,1);
+        mChimpDevice.drag(x,y,x,y,10,1);
         LinkedList<String> log = pollLog();
         if(log.size() != 0) return false;
         return true;

@@ -12,7 +12,7 @@ package edu.berkeley.wtchoi.cc.util;
 public abstract class E {
     private static int miniSleepInterval = 200;
 
-    public static boolean sleep(int sleepInterval){
+    public static boolean sleep(long sleepInterval){
         try{
             Thread.sleep(sleepInterval);
             return true;
