@@ -223,6 +223,10 @@ class SupervisorImp extends Thread{
 
         Log.d("wtchoi", "stream initialized");
         state = new InitState(this);
+
+        //TODO:generate initial report content
+        DriverPacket sPacket = DriverPacket.getInitReport(null);
+        channel.sendPacket(sPacket);
     }
 
     public void closeApplication(){

@@ -61,7 +61,7 @@ public class StableState extends AbstractState {
                 s.closeApplication();
 
             case SetOptions:
-                int[] options  = packet.getDriverOption();
+                int[] options  = packet.getExtraAs(int[].class);
                 s.TICKCOUNT    = options[DriverPacket.OptionIndex.ITickCount.ordinal()];
                 s.TICKINTERVAL = options[DriverPacket.OptionIndex.ITickInterval.ordinal()];
                 s.TICKSNOOZE   = options[DriverPacket.OptionIndex.ITickSnooze.ordinal()];

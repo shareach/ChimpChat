@@ -79,23 +79,26 @@ public class Driver<TransitionInfo>{
         }
 
 
-
         //3. Wait for communication channel initiation
         System.out.println("wait");
         channel.connect();
         //channel.waitConnection();
         System.out.println("go");
-        System.out.println("Waiting for application to be stable");
+        System.out.println("Waiting for initial information report");
 
+        //3.5 Wait for the initial report
+        {
+            DriverPacket packet = channel.receivePacket();
+            packet.assertType(DriverPacket.Type.InitialReport);
+        }
+
+
+        System.out.println("Waiting for application to be stable");
 
         //4. Wait for application to be ready for command
         {
             DriverPacket packet = channel.receivePacket();
-            if (packet.getType() != DriverPacket.Type.AckStable) {
-                System.out.println("received packet:" + packet.getType());
-                throw new RuntimeException("Application sent wrong packet. AckStable expected");
-                //return false;
-            }
+            packet.assertType(DriverPacket.Type.AckStable);
 
             justRestarted = true;
             System.out.println("Application Initiated");
@@ -150,7 +153,8 @@ public class Driver<TransitionInfo>{
         channel.sendPacket(sPacket);
 
         DriverPacket rPacket = channel.receivePacket();
-        mv = rPacket.getView();
+        rPacket.assertType(DriverPacket.Type.ViewInfo);
+        mv = rPacket.getExtraAs(ViewInfo.class);
 
         //DEBUG PRINT : whether received information is correct or not
         //System.out.println(mv);
@@ -168,7 +172,8 @@ public class Driver<TransitionInfo>{
         channel.sendPacket(sPacket);
 
         DriverPacket rPacket = channel.receivePacket();
-        ti = rPacket.getTI();
+        rPacket.assertType(DriverPacket.Type.TI);
+        ti = (TransitionInfo) rPacket.getExtra();
 
         return ti;
     }

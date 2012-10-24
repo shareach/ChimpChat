@@ -52,6 +52,10 @@ public class DriverPacket implements Serializable{
         return new DriverPacket(Type.AckStop);
     }
 
+    public static DriverPacket getInitReport(Object report){
+        return new DriverPacket(Type.InitialReport, report);
+    }
+
     public static DriverPacket getSetOptions(int[] opt){
         return new DriverPacket(Type.SetOptions, opt);
     }
@@ -79,39 +83,18 @@ public class DriverPacket implements Serializable{
         return type;
     }
 
-    public int[] getDriverOption(){
-        if(this.getType() == Type.SetOptions){
-            return (int[]) piggyback;
-        }
-        throw new RuntimeException("Wrong DriverPacket!:"+this.toString());
+    public void assertType(Type type){
+        if(this.getType() == type) return;
+        throw new RuntimeException("Wrong DriverPacket! : expected=" + type + " , received=" + this.getType());
     }
 
-    public ViewInfo getView(){
-        if(this.getType() == Type.ViewInfo){
-            return (ViewInfo) piggyback;
-        }
-        throw new RuntimeException("Wrong DriverPacket!:"+this.toString());
+    public Object getExtra(){
+        return this.piggyback;
     }
 
-    public int getViewId(){
-        if(this.getType() == Type.EnterEditText){
-            return (Integer) ((Object[]) piggyback)[0];
-        }
-        throw new RuntimeException("Wrong DriverPacket:"+this.toString());
-    }
-
-    public <T> T getTI(){
-        if(this.getType() == Type.TI){
-            return (T) piggyback;
-        }
-        throw new RuntimeException("Wrong DriverPacket:"+this.toString());
-    }
-
-    public String getString(){
-        if(this.getType() == Type.EnterEditText){
-            return (String) ((Object[]) piggyback)[1];
-        }
-        throw new RuntimeException("Wrong DriverPacket:"+this.toString());
+    public <T> T getExtraAs(Class<T> classT){
+        if(this.piggyback.getClass().isAssignableFrom(classT)) return (T) this.piggyback;
+        throw new RuntimeException("Wrong Type! : expected=" + classT + " , received=" + this.piggyback.getClass());
     }
 
     public static enum OptionIndex{
@@ -132,6 +115,7 @@ public class DriverPacket implements Serializable{
         EnterEditText("EnterEditText"),
 
         // DriverPacket from Application
+        InitialReport("InitialReport"),
         AckStable("AckStable"),
         ViewInfo("ViewInfo"),
         TI("TransitionInfo"),
